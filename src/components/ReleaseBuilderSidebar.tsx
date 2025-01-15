@@ -66,19 +66,22 @@ export function ReleaseBuilderSidebar({
                 Basic Info
               </div>
               <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Tracks
-              </div>
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
                 Artwork
               </div>
               <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Credits
+                Tracks
               </div>
               <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Stores
+                Scheduling and Pricing
               </div>
               <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Preview
+                Territories and Services
+              </div>
+              <div className="rounded-md bg-card p-2 hover:bg-card/90">
+                Publishing
+              </div>
+              <div className="rounded-md bg-card p-2 hover:bg-card/90">
+                Overview
               </div>
             </div>
           </SidebarGroupContent>
