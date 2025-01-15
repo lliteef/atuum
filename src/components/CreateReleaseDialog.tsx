@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ type ReleaseType = "Digital" | "Physical" | "Music Video";
 type ReleaseFormat = "Album/Full Length" | "EP" | "Single";
 
 export function CreateReleaseDialog() {
+  const navigate = useNavigate();
   const [releaseType, setReleaseType] = useState<ReleaseType | null>(null);
   const [format, setFormat] = useState<ReleaseFormat | null>(null);
   const [releaseName, setReleaseName] = useState("");
@@ -16,6 +18,23 @@ export function CreateReleaseDialog() {
   const [releaseVersion, setReleaseVersion] = useState("");
   const [hasUPC, setHasUPC] = useState<boolean>(false);
   const [upcNumber, setUpcNumber] = useState("");
+
+  const handleCreateRelease = () => {
+    if (!releaseType || !format || !releaseName || !releaseNo) {
+      return; // Don't proceed if required fields are missing
+    }
+
+    navigate("/release-builder", {
+      state: {
+        releaseName,
+        upc: hasUPC ? upcNumber : undefined,
+        releaseType,
+        format,
+        releaseNo,
+        releaseVersion,
+      },
+    });
+  };
 
   return (
     <Dialog>
@@ -137,6 +156,15 @@ export function CreateReleaseDialog() {
               />
             )}
           </div>
+
+          {/* Create Release Button */}
+          <Button
+            className="w-full"
+            onClick={handleCreateRelease}
+            disabled={!releaseType || !format || !releaseName || !releaseNo}
+          >
+            Create Release
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
