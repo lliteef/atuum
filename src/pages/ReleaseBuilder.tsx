@@ -5,8 +5,11 @@ import { BasicInfo } from "@/components/release-builder/BasicInfo";
 import { Artwork } from "@/components/release-builder/Artwork";
 import { useState } from "react";
 
+type Section = "basic-info" | "artwork";
+
 export default function ReleaseBuilder() {
   const location = useLocation();
+  const [currentSection, setCurrentSection] = useState<Section>("basic-info");
   const [releaseName, setReleaseName] = useState(
     location.state?.releaseName || "New Release"
   );
@@ -18,6 +21,10 @@ export default function ReleaseBuilder() {
     format: location.state?.format || "Single",
   };
 
+  const handleSectionChange = (section: Section) => {
+    setCurrentSection(section);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#0F172A] text-white">
@@ -27,11 +34,16 @@ export default function ReleaseBuilder() {
           status="In Progress"
         />
         <main className="flex-1 overflow-auto">
-          <BasicInfo
-            initialData={releaseData}
-            onUpdateReleaseName={setReleaseName}
-          />
-          <Artwork />
+          {currentSection === "basic-info" && (
+            <BasicInfo
+              initialData={releaseData}
+              onUpdateReleaseName={setReleaseName}
+              onNext={() => handleSectionChange("artwork")}
+            />
+          )}
+          {currentSection === "artwork" && (
+            <Artwork onNext={() => console.log("Next section")} />
+          )}
         </main>
       </div>
     </SidebarProvider>

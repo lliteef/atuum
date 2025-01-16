@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X } from "lucide-react";
+import { Upload, X, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface ArtworkProps {
   initialData?: {
     artworkUrl?: string;
   };
+  onNext?: () => void;
 }
 
-export function Artwork({ initialData }: ArtworkProps) {
+export function Artwork({ initialData, onNext }: ArtworkProps) {
   const [artworkUrl, setArtworkUrl] = useState<string>(
     initialData?.artworkUrl || ""
   );
@@ -159,6 +160,15 @@ export function Artwork({ initialData }: ArtworkProps) {
           </p>
         </div>
       )}
+
+      <Button 
+        className="w-full mt-6"
+        onClick={onNext}
+        disabled={!artworkUrl}
+      >
+        Save and Continue
+        <ArrowRight className="ml-2 h-4 w-4" />
+      </Button>
     </div>
   );
 }

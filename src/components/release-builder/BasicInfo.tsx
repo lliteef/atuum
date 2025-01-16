@@ -64,9 +64,10 @@ interface BasicInfoProps {
     format: string;
   };
   onUpdateReleaseName: (name: string) => void;
+  onNext: () => void;
 }
 
-export function BasicInfo({ initialData, onUpdateReleaseName }: BasicInfoProps) {
+export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInfoProps) {
   const [primaryArtists, setPrimaryArtists] = useState<string[]>([]);
   const [featuredArtists, setFeaturedArtists] = useState<string[]>([]);
   const [currentPrimaryArtist, setCurrentPrimaryArtist] = useState("");
@@ -279,7 +280,13 @@ export function BasicInfo({ initialData, onUpdateReleaseName }: BasicInfoProps) 
           <Input placeholder="2025 Amber Records" />
         </div>
 
-        <Button className="w-full">Save and Continue</Button>
+        <Button 
+          className="w-full" 
+          onClick={onNext}
+        >
+          Save and Continue
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
