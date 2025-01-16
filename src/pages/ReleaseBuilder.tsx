@@ -3,6 +3,7 @@ import { ReleaseBuilderSidebar } from "@/components/ReleaseBuilderSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { BasicInfo } from "@/components/release-builder/BasicInfo";
 import { Artwork } from "@/components/release-builder/Artwork";
+import { Tracks } from "@/components/release-builder/Tracks";
 import { useState } from "react";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
@@ -45,6 +46,9 @@ export default function ReleaseBuilder() {
           )}
           {currentSection === "artwork" && (
             <Artwork onNext={() => handleSectionChange("tracks")} />
+          )}
+          {currentSection === "tracks" && (
+            <Tracks onNext={() => handleSectionChange("scheduling")} />
           )}
           {/* Other sections will be added here */}
         </main>
