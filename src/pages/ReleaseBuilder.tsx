@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom";
 import { ReleaseBuilderSidebar } from "@/components/ReleaseBuilderSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { BasicInfo } from "@/components/release-builder/BasicInfo";
+import { Artwork } from "@/components/release-builder/Artwork";
 import { useState } from "react";
 
 export default function ReleaseBuilder() {
@@ -30,6 +31,7 @@ export default function ReleaseBuilder() {
             initialData={releaseData}
             onUpdateReleaseName={setReleaseName}
           />
+          <Artwork />
         </main>
       </div>
     </SidebarProvider>
