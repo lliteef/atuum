@@ -12,7 +12,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { X } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 
 // Language options - this could be moved to a separate constants file
 const languages = [
