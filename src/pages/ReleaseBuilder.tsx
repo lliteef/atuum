@@ -5,7 +5,7 @@ import { BasicInfo } from "@/components/release-builder/BasicInfo";
 import { Artwork } from "@/components/release-builder/Artwork";
 import { useState } from "react";
 
-type Section = "basic-info" | "artwork";
+type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 
 export default function ReleaseBuilder() {
   const location = useLocation();
@@ -32,6 +32,8 @@ export default function ReleaseBuilder() {
           releaseName={releaseName}
           upc={releaseData.upc}
           status="In Progress"
+          currentSection={currentSection}
+          onSectionChange={handleSectionChange}
         />
         <main className="flex-1 overflow-auto">
           {currentSection === "basic-info" && (
@@ -42,8 +44,9 @@ export default function ReleaseBuilder() {
             />
           )}
           {currentSection === "artwork" && (
-            <Artwork onNext={() => console.log("Next section")} />
+            <Artwork onNext={() => handleSectionChange("tracks")} />
           )}
+          {/* Other sections will be added here */}
         </main>
       </div>
     </SidebarProvider>

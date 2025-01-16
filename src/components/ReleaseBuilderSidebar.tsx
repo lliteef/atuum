@@ -5,14 +5,18 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 
 type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
+type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 
 interface ReleaseBuilderSidebarProps {
   releaseName: string;
   upc?: string;
   status: ReleaseStatus;
+  currentSection: ReleaseSection;
+  onSectionChange: (section: ReleaseSection) => void;
 }
 
 const getStatusColor = (status: ReleaseStatus) => {
@@ -34,7 +38,19 @@ export function ReleaseBuilderSidebar({
   releaseName,
   upc,
   status,
+  currentSection,
+  onSectionChange,
 }: ReleaseBuilderSidebarProps) {
+  const sections: { id: ReleaseSection; label: string }[] = [
+    { id: "basic-info", label: "Basic Info" },
+    { id: "artwork", label: "Artwork" },
+    { id: "tracks", label: "Tracks" },
+    { id: "scheduling", label: "Scheduling and Pricing" },
+    { id: "territories", label: "Territories and Services" },
+    { id: "publishing", label: "Publishing" },
+    { id: "overview", label: "Overview" },
+  ];
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -62,27 +78,19 @@ export function ReleaseBuilderSidebar({
           <SidebarGroupLabel>Release Information</SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="space-y-2 p-2">
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Basic Info
-              </div>
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Artwork
-              </div>
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Tracks
-              </div>
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Scheduling and Pricing
-              </div>
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Territories and Services
-              </div>
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Publishing
-              </div>
-              <div className="rounded-md bg-card p-2 hover:bg-card/90">
-                Overview
-              </div>
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => onSectionChange(section.id)}
+                  className={`w-full rounded-md p-2 text-left transition-colors ${
+                    currentSection === section.id
+                      ? "bg-white/10 text-white"
+                      : "bg-card hover:bg-card/90 text-gray-300"
+                  }`}
+                >
+                  {section.label}
+                </button>
+              ))}
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
