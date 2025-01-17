@@ -123,6 +123,28 @@ export function Tracks({ onNext }: TracksProps) {
     }
   };
 
+  const handleArtistKeyDown = (
+    e: React.KeyboardEvent,
+    type: "primary" | "featured" | "remixers" | "songwriters" | "producers",
+    currentValue: string,
+    setter: (value: string) => void,
+    arraySetter: (value: string[]) => void,
+    currentArray: string[]
+  ) => {
+    if (e.key === "Enter" && currentValue.trim()) {
+      arraySetter([...currentArray, currentValue.trim()]);
+      setter("");
+    }
+  };
+
+  const removeArtist = (
+    artist: string,
+    arraySetter: (value: string[]) => void,
+    currentArray: string[]
+  ) => {
+    arraySetter(currentArray.filter((a) => a !== artist));
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Track List Side */}
@@ -303,9 +325,297 @@ export function Tracks({ onNext }: TracksProps) {
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Artists and Contributors</h3>
-            {/* Artists and Contributors fields will be implemented here */}
+            
+            {/* Primary Artists */}
+            <div>
+              <Label>Primary Artist(s) (required)</Label>
+              <Input
+                value={selectedTrack.currentPrimaryArtist || ""}
+                onChange={(e) =>
+                  updateTrack(selectedTrack.id, { currentPrimaryArtist: e.target.value })
+                }
+                onKeyDown={(e) =>
+                  handleArtistKeyDown(
+                    e,
+                    "primary",
+                    selectedTrack.currentPrimaryArtist || "",
+                    (value) => updateTrack(selectedTrack.id, { currentPrimaryArtist: value }),
+                    (value) => updateTrack(selectedTrack.id, { primaryArtists: value }),
+                    selectedTrack.primaryArtists
+                  )
+                }
+                placeholder="Type artist name and press Enter"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedTrack.primaryArtists.map((artist) => (
+                  <Badge key={artist} variant="secondary">
+                    {artist}
+                    <X
+                      className="w-3 h-3 ml-1 cursor-pointer"
+                      onClick={() =>
+                        removeArtist(
+                          artist,
+                          (value) => updateTrack(selectedTrack.id, { primaryArtists: value }),
+                          selectedTrack.primaryArtists
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Featured Artists */}
+            <div>
+              <Label>Featured Artist(s)</Label>
+              <Input
+                value={selectedTrack.currentFeaturedArtist || ""}
+                onChange={(e) =>
+                  updateTrack(selectedTrack.id, { currentFeaturedArtist: e.target.value })
+                }
+                onKeyDown={(e) =>
+                  handleArtistKeyDown(
+                    e,
+                    "featured",
+                    selectedTrack.currentFeaturedArtist || "",
+                    (value) => updateTrack(selectedTrack.id, { currentFeaturedArtist: value }),
+                    (value) => updateTrack(selectedTrack.id, { featuredArtists: value }),
+                    selectedTrack.featuredArtists
+                  )
+                }
+                placeholder="Type artist name and press Enter"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedTrack.featuredArtists.map((artist) => (
+                  <Badge key={artist} variant="secondary">
+                    {artist}
+                    <X
+                      className="w-3 h-3 ml-1 cursor-pointer"
+                      onClick={() =>
+                        removeArtist(
+                          artist,
+                          (value) => updateTrack(selectedTrack.id, { featuredArtists: value }),
+                          selectedTrack.featuredArtists
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Remixers */}
+            <div>
+              <Label>Remixer(s)</Label>
+              <Input
+                value={selectedTrack.currentRemixer || ""}
+                onChange={(e) =>
+                  updateTrack(selectedTrack.id, { currentRemixer: e.target.value })
+                }
+                onKeyDown={(e) =>
+                  handleArtistKeyDown(
+                    e,
+                    "remixers",
+                    selectedTrack.currentRemixer || "",
+                    (value) => updateTrack(selectedTrack.id, { currentRemixer: value }),
+                    (value) => updateTrack(selectedTrack.id, { remixers: value }),
+                    selectedTrack.remixers
+                  )
+                }
+                placeholder="Type remixer name and press Enter"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedTrack.remixers.map((artist) => (
+                  <Badge key={artist} variant="secondary">
+                    {artist}
+                    <X
+                      className="w-3 h-3 ml-1 cursor-pointer"
+                      onClick={() =>
+                        removeArtist(
+                          artist,
+                          (value) => updateTrack(selectedTrack.id, { remixers: value }),
+                          selectedTrack.remixers
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Songwriters */}
+            <div>
+              <Label>Songwriter(s) (required)</Label>
+              <Input
+                value={selectedTrack.currentSongwriter || ""}
+                onChange={(e) =>
+                  updateTrack(selectedTrack.id, { currentSongwriter: e.target.value })
+                }
+                onKeyDown={(e) =>
+                  handleArtistKeyDown(
+                    e,
+                    "songwriters",
+                    selectedTrack.currentSongwriter || "",
+                    (value) => updateTrack(selectedTrack.id, { currentSongwriter: value }),
+                    (value) => updateTrack(selectedTrack.id, { songwriters: value }),
+                    selectedTrack.songwriters
+                  )
+                }
+                placeholder="Type songwriter name and press Enter"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedTrack.songwriters.map((artist) => (
+                  <Badge key={artist} variant="secondary">
+                    {artist}
+                    <X
+                      className="w-3 h-3 ml-1 cursor-pointer"
+                      onClick={() =>
+                        removeArtist(
+                          artist,
+                          (value) => updateTrack(selectedTrack.id, { songwriters: value }),
+                          selectedTrack.songwriters
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Producers */}
+            <div>
+              <Label>Producer(s)</Label>
+              <Input
+                value={selectedTrack.currentProducer || ""}
+                onChange={(e) =>
+                  updateTrack(selectedTrack.id, { currentProducer: e.target.value })
+                }
+                onKeyDown={(e) =>
+                  handleArtistKeyDown(
+                    e,
+                    "producers",
+                    selectedTrack.currentProducer || "",
+                    (value) => updateTrack(selectedTrack.id, { currentProducer: value }),
+                    (value) => updateTrack(selectedTrack.id, { producers: value }),
+                    selectedTrack.producers
+                  )
+                }
+                placeholder="Type producer name and press Enter"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedTrack.producers.map((artist) => (
+                  <Badge key={artist} variant="secondary">
+                    {artist}
+                    <X
+                      className="w-3 h-3 ml-1 cursor-pointer"
+                      onClick={() =>
+                        removeArtist(
+                          artist,
+                          (value) => updateTrack(selectedTrack.id, { producers: value }),
+                          selectedTrack.producers
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Additional Contributors */}
+            <div>
+              <Label>Additional Contributors</Label>
+              <Select
+                onValueChange={(role) => {
+                  if (!selectedTrack.additionalContributors.find(c => c.role === role)) {
+                    updateTrack(selectedTrack.id, {
+                      additionalContributors: [
+                        ...selectedTrack.additionalContributors,
+                        { role, names: [] }
+                      ]
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Add contributor role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTRIBUTOR_ROLES.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {selectedTrack.additionalContributors.map((contributor, index) => (
+                <div key={contributor.role} className="mt-4">
+                  <div className="flex items-center justify-between">
+                    <Label>{contributor.role}</Label>
+                    <X
+                      className="w-4 h-4 cursor-pointer"
+                      onClick={() => {
+                        const newContributors = [...selectedTrack.additionalContributors];
+                        newContributors.splice(index, 1);
+                        updateTrack(selectedTrack.id, {
+                          additionalContributors: newContributors
+                        });
+                      }}
+                    />
+                  </div>
+                  <Input
+                    value={contributor.currentName || ""}
+                    onChange={(e) => {
+                      const newContributors = [...selectedTrack.additionalContributors];
+                      newContributors[index] = {
+                        ...contributor,
+                        currentName: e.target.value
+                      };
+                      updateTrack(selectedTrack.id, {
+                        additionalContributors: newContributors
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && contributor.currentName?.trim()) {
+                        const newContributors = [...selectedTrack.additionalContributors];
+                        newContributors[index] = {
+                          ...contributor,
+                          names: [...contributor.names, contributor.currentName.trim()],
+                          currentName: ""
+                        };
+                        updateTrack(selectedTrack.id, {
+                          additionalContributors: newContributors
+                        });
+                      }
+                    }}
+                    placeholder={`Type ${contributor.role.toLowerCase()} name and press Enter`}
+                  />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {contributor.names.map((name) => (
+                      <Badge key={name} variant="secondary">
+                        {name}
+                        <X
+                          className="w-3 h-3 ml-1 cursor-pointer"
+                          onClick={() => {
+                            const newContributors = [...selectedTrack.additionalContributors];
+                            newContributors[index] = {
+                              ...contributor,
+                              names: contributor.names.filter(n => n !== name)
+                            };
+                            updateTrack(selectedTrack.id, {
+                              additionalContributors: newContributors
+                            });
+                          }}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
+          {/* Master Rights Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Master Rights</h3>
             <div>
@@ -321,6 +631,7 @@ export function Tracks({ onNext }: TracksProps) {
             </div>
           </div>
 
+          {/* Navigation Buttons */}
           <div className="flex justify-between pt-4">
             <Button
               variant="outline"
