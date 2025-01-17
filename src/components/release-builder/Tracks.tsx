@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Upload, ArrowLeft, ArrowRight } from "lucide-react";
+import { Plus, Upload, ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Track {
@@ -27,8 +28,14 @@ interface Track {
   additionalContributors: {
     role: string;
     names: string[];
+    currentName?: string;
   }[];
   pLine: string;
+  currentPrimaryArtist?: string;
+  currentFeaturedArtist?: string;
+  currentRemixer?: string;
+  currentSongwriter?: string;
+  currentProducer?: string;
 }
 
 const CONTRIBUTOR_ROLES = [
@@ -348,10 +355,10 @@ export function Tracks({ onNext }: TracksProps) {
               />
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedTrack.primaryArtists.map((artist) => (
-                  <Badge key={artist} variant="secondary">
+                  <Badge key={artist} variant="secondary" className="flex items-center gap-1">
                     {artist}
                     <X
-                      className="w-3 h-3 ml-1 cursor-pointer"
+                      className="h-3 w-3 cursor-pointer"
                       onClick={() =>
                         removeArtist(
                           artist,
@@ -387,10 +394,10 @@ export function Tracks({ onNext }: TracksProps) {
               />
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedTrack.featuredArtists.map((artist) => (
-                  <Badge key={artist} variant="secondary">
+                  <Badge key={artist} variant="secondary" className="flex items-center gap-1">
                     {artist}
                     <X
-                      className="w-3 h-3 ml-1 cursor-pointer"
+                      className="h-3 w-3 cursor-pointer"
                       onClick={() =>
                         removeArtist(
                           artist,
@@ -426,10 +433,10 @@ export function Tracks({ onNext }: TracksProps) {
               />
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedTrack.remixers.map((artist) => (
-                  <Badge key={artist} variant="secondary">
+                  <Badge key={artist} variant="secondary" className="flex items-center gap-1">
                     {artist}
                     <X
-                      className="w-3 h-3 ml-1 cursor-pointer"
+                      className="h-3 w-3 cursor-pointer"
                       onClick={() =>
                         removeArtist(
                           artist,
@@ -465,10 +472,10 @@ export function Tracks({ onNext }: TracksProps) {
               />
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedTrack.songwriters.map((artist) => (
-                  <Badge key={artist} variant="secondary">
+                  <Badge key={artist} variant="secondary" className="flex items-center gap-1">
                     {artist}
                     <X
-                      className="w-3 h-3 ml-1 cursor-pointer"
+                      className="h-3 w-3 cursor-pointer"
                       onClick={() =>
                         removeArtist(
                           artist,
@@ -504,10 +511,10 @@ export function Tracks({ onNext }: TracksProps) {
               />
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedTrack.producers.map((artist) => (
-                  <Badge key={artist} variant="secondary">
+                  <Badge key={artist} variant="secondary" className="flex items-center gap-1">
                     {artist}
                     <X
-                      className="w-3 h-3 ml-1 cursor-pointer"
+                      className="h-3 w-3 cursor-pointer"
                       onClick={() =>
                         removeArtist(
                           artist,
