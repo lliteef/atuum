@@ -49,7 +49,11 @@ const LANGUAGES = [
   // Add more languages as needed
 ];
 
-export function Tracks() {
+interface TracksProps {
+  onNext?: () => void;
+}
+
+export function Tracks({ onNext }: TracksProps) {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -325,6 +329,9 @@ export function Tracks() {
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Edit Previous Track
+            </Button>
+            <Button onClick={onNext}>
+              Save and Continue
             </Button>
             <Button
               variant="outline"
