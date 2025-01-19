@@ -7,6 +7,7 @@ import { Tracks } from "@/components/release-builder/Tracks";
 import { Scheduling } from "@/components/release-builder/Scheduling";
 import { TerritoriesAndServices } from "@/components/release-builder/TerritoriesAndServices";
 import { Publishing } from "@/components/release-builder/Publishing";
+import { Overview } from "@/components/release-builder/Overview";
 import { useState } from "react";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
@@ -27,6 +28,11 @@ export default function ReleaseBuilder() {
 
   const handleSectionChange = (section: Section) => {
     setCurrentSection(section);
+  };
+
+  const handleSubmitRelease = () => {
+    // Handle release submission
+    console.log("Submitting release...");
   };
 
   return (
@@ -61,6 +67,12 @@ export default function ReleaseBuilder() {
           )}
           {currentSection === "publishing" && (
             <Publishing onNext={() => handleSectionChange("overview")} />
+          )}
+          {currentSection === "overview" && (
+            <Overview
+              releaseData={releaseData}
+              onNext={handleSubmitRelease}
+            />
           )}
         </main>
       </div>
