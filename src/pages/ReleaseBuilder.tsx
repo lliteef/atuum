@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { BasicInfo } from "@/components/release-builder/BasicInfo";
 import { Artwork } from "@/components/release-builder/Artwork";
 import { Tracks } from "@/components/release-builder/Tracks";
+import { Scheduling } from "@/components/release-builder/Scheduling";
 import { useState } from "react";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
@@ -50,7 +51,9 @@ export default function ReleaseBuilder() {
           {currentSection === "tracks" && (
             <Tracks onNext={() => handleSectionChange("scheduling")} />
           )}
-          {/* Other sections will be added here */}
+          {currentSection === "scheduling" && (
+            <Scheduling onNext={() => handleSectionChange("territories")} />
+          )}
         </main>
       </div>
     </SidebarProvider>
