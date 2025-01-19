@@ -537,16 +537,16 @@ export function Tracks({ onNext }: TracksProps) {
                     updateTrack(selectedTrack.id, {
                       additionalContributors: [
                         ...selectedTrack.additionalContributors,
-                        { role, names: [] }
+                        { role, names: [], currentName: '' }
                       ]
                     });
                   }
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Add contributor role" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background z-50">
                   {CONTRIBUTOR_ROLES.map((role) => (
                     <SelectItem key={role} value={role}>
                       {role}
