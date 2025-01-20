@@ -9,39 +9,123 @@ import { TerritoriesAndServices } from "@/components/release-builder/Territories
 import { Publishing } from "@/components/release-builder/Publishing";
 import { Overview } from "@/components/release-builder/Overview";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
+type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
+
+export interface ReleaseData {
+  releaseName: string;
+  upc?: string;
+  catalogNumber: string;
+  format: string;
+  metadataLanguage?: string;
+  primaryArtists: string[];
+  featuredArtists: string[];
+  genre?: string;
+  subgenre?: string;
+  label?: string;
+  copyrightLine?: string;
+  artworkUrl?: string;
+  tracks: {
+    title: string;
+    version?: string;
+    isrc?: string;
+    explicitContent: "None" | "Explicit" | "Clean";
+    lyrics?: string;
+    primaryArtists: string[];
+    featuredArtists: string[];
+    remixers: string[];
+    songwriters: string[];
+    producers: string[];
+    pLine: string;
+  }[];
+  releaseDate?: Date;
+  salesStartDate?: Date;
+  presaveOption?: string;
+  presaveDate?: Date;
+  pricing?: string;
+  selectedTerritories: string[];
+  selectedServices: string[];
+  publishingType?: string;
+  publisherName?: string;
+}
 
 export default function ReleaseBuilder() {
   const location = useLocation();
   const [currentSection, setCurrentSection] = useState<Section>("basic-info");
-  const [releaseName, setReleaseName] = useState(
-    location.state?.releaseName || "New Release"
-  );
+  const [releaseStatus, setReleaseStatus] = useState<ReleaseStatus>("In Progress");
+  const { toast } = useToast();
   
-  const releaseData = {
-    releaseName,
+  const [releaseData, setReleaseData] = useState<ReleaseData>({
+    releaseName: location.state?.releaseName || "New Release",
     upc: location.state?.upc,
     catalogNumber: location.state?.releaseNo || "",
     format: location.state?.format || "Single",
+    primaryArtists: [],
+    featuredArtists: [],
+    tracks: [],
+    selectedTerritories: [],
+    selectedServices: [],
+  });
+
+  const validateRelease = () => {
+    const errors: string[] = [];
+
+    if (!releaseData.releaseName) errors.push("Release name is required");
+    if (!releaseData.metadataLanguage) errors.push("Metadata language is required");
+    if (releaseData.primaryArtists.length === 0) errors.push("At least one primary artist is required");
+    if (!releaseData.genre) errors.push("Genre is required");
+    if (!releaseData.artworkUrl) errors.push("Artwork is required");
+    if (releaseData.tracks.length === 0) errors.push("At least one track is required");
+    if (!releaseData.releaseDate) errors.push("Release date is required");
+    if (releaseData.selectedTerritories.length === 0) errors.push("At least one territory must be selected");
+    if (releaseData.selectedServices.length === 0) errors.push("At least one service must be selected");
+    if (!releaseData.publishingType) errors.push("Publishing type must be selected");
+
+    return errors;
   };
 
   const handleSectionChange = (section: Section) => {
     setCurrentSection(section);
+    if (section === "overview") {
+      const errors = validateRelease();
+      if (errors.length === 0) {
+        setReleaseStatus("Ready");
+      }
+    }
+  };
+
+  const updateReleaseData = (updates: Partial<ReleaseData>) => {
+    setReleaseData(prev => ({ ...prev, ...updates }));
   };
 
   const handleSubmitRelease = () => {
+    const errors = validateRelease();
+    if (errors.length > 0) {
+      toast({
+        title: "Cannot submit release",
+        description: "Please fix all errors before submitting",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Handle release submission
-    console.log("Submitting release...");
+    console.log("Submitting release...", releaseData);
+    toast({
+      title: "Release submitted",
+      description: "Your release has been submitted successfully",
+    });
   };
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#0F172A] text-white">
         <ReleaseBuilderSidebar
-          releaseName={releaseName}
+          releaseName={releaseData.releaseName}
           upc={releaseData.upc}
-          status="In Progress"
+          status={releaseStatus}
           currentSection={currentSection}
           onSectionChange={handleSectionChange}
         />
@@ -49,28 +133,54 @@ export default function ReleaseBuilder() {
           {currentSection === "basic-info" && (
             <BasicInfo
               initialData={releaseData}
-              onUpdateReleaseName={setReleaseName}
+              onUpdateReleaseName={(name) => updateReleaseData({ releaseName: name })}
               onNext={() => handleSectionChange("artwork")}
             />
           )}
           {currentSection === "artwork" && (
-            <Artwork onNext={() => handleSectionChange("tracks")} />
+            <Artwork 
+              initialData={releaseData}
+              onArtworkUpdate={(url) => updateReleaseData({ artworkUrl: url })}
+              onNext={() => handleSectionChange("tracks")}
+            />
           )}
           {currentSection === "tracks" && (
-            <Tracks onNext={() => handleSectionChange("scheduling")} />
+            <Tracks 
+              initialData={releaseData}
+              onTracksUpdate={(tracks) => updateReleaseData({ tracks })}
+              onNext={() => handleSectionChange("scheduling")}
+            />
           )}
           {currentSection === "scheduling" && (
-            <Scheduling onNext={() => handleSectionChange("territories")} />
+            <Scheduling 
+              initialData={releaseData}
+              onSchedulingUpdate={(data) => updateReleaseData(data)}
+              onNext={() => handleSectionChange("territories")}
+            />
           )}
           {currentSection === "territories" && (
-            <TerritoriesAndServices onNext={() => handleSectionChange("publishing")} />
+            <TerritoriesAndServices
+              initialData={releaseData}
+              onTerritoriesUpdate={(territories, services) => 
+                updateReleaseData({ 
+                  selectedTerritories: territories,
+                  selectedServices: services 
+                })
+              }
+              onNext={() => handleSectionChange("publishing")}
+            />
           )}
           {currentSection === "publishing" && (
-            <Publishing onNext={() => handleSectionChange("overview")} />
+            <Publishing
+              initialData={releaseData}
+              onPublishingUpdate={(data) => updateReleaseData(data)}
+              onNext={() => handleSectionChange("overview")}
+            />
           )}
           {currentSection === "overview" && (
             <Overview
               releaseData={releaseData}
+              errors={validateRelease()}
               onNext={handleSubmitRelease}
             />
           )}
