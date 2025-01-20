@@ -74,15 +74,26 @@ export default function ReleaseBuilder() {
   
   const [releaseData, setReleaseData] = useState<ReleaseData>(() => {
     const savedData = sessionStorage.getItem(STORAGE_KEY);
+    const basicInfoData = sessionStorage.getItem('basicInfoData');
+    
     if (savedData) {
       const parsedData = JSON.parse(savedData);
       // Convert date strings back to Date objects
       if (parsedData.releaseDate) parsedData.releaseDate = new Date(parsedData.releaseDate);
       if (parsedData.salesStartDate) parsedData.salesStartDate = new Date(parsedData.salesStartDate);
       if (parsedData.presaveDate) parsedData.presaveDate = new Date(parsedData.presaveDate);
+      
+      // Merge with basicInfoData if it exists
+      if (basicInfoData) {
+        const parsedBasicInfo = JSON.parse(basicInfoData);
+        return { ...parsedData, ...parsedBasicInfo };
+      }
+      
       return parsedData;
     }
-    return {
+
+    // Initialize with location state or default values
+    const initialData = {
       releaseName: location.state?.releaseName || "New Release",
       upc: location.state?.upc,
       catalogNumber: location.state?.releaseNo || "",
@@ -93,6 +104,14 @@ export default function ReleaseBuilder() {
       selectedTerritories: [],
       selectedServices: [],
     };
+
+    // Merge with basicInfoData if it exists
+    if (basicInfoData) {
+      const parsedBasicInfo = JSON.parse(basicInfoData);
+      return { ...initialData, ...parsedBasicInfo };
+    }
+
+    return initialData;
   });
 
   // Save data to sessionStorage whenever it changes

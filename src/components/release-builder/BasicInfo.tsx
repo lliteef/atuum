@@ -76,23 +76,44 @@ interface BasicInfoProps {
 }
 
 export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInfoProps) {
-  const [primaryArtists, setPrimaryArtists] = useState<string[]>(initialData.primaryArtists || []);
-  const [featuredArtists, setFeaturedArtists] = useState<string[]>(initialData.featuredArtists || []);
+  // Initialize state from sessionStorage or initialData
+  const savedData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
+
+  const [primaryArtists, setPrimaryArtists] = useState<string[]>(
+    savedData.primaryArtists || initialData.primaryArtists || []
+  );
+  const [featuredArtists, setFeaturedArtists] = useState<string[]>(
+    savedData.featuredArtists || initialData.featuredArtists || []
+  );
   const [currentPrimaryArtist, setCurrentPrimaryArtist] = useState("");
   const [currentFeaturedArtist, setCurrentFeaturedArtist] = useState("");
-  const [deliverFeaturedAsPrimary, setDeliverFeaturedAsPrimary] = useState(initialData.deliverFeaturedAsPrimary || false);
+  const [deliverFeaturedAsPrimary, setDeliverFeaturedAsPrimary] = useState(
+    savedData.deliverFeaturedAsPrimary || initialData.deliverFeaturedAsPrimary || false
+  );
   const [labels, setLabels] = useState<string[]>(["Amber Records"]);
-  const [selectedLabel, setSelectedLabel] = useState<string>(initialData.label || "Amber Records");
+  const [selectedLabel, setSelectedLabel] = useState<string>(
+    savedData.label || initialData.label || "Amber Records"
+  );
   const [newLabel, setNewLabel] = useState("");
-  const [metadataLanguage, setMetadataLanguage] = useState<string>(initialData.metadataLanguage || "");
-  const [genre, setGenre] = useState<string>(initialData.genre || "");
-  const [subgenre, setSubgenre] = useState<string>(initialData.subgenre || "");
-  const [copyrightLine, setCopyrightLine] = useState<string>(initialData.copyrightLine || "");
+  const [metadataLanguage, setMetadataLanguage] = useState<string>(
+    savedData.metadataLanguage || initialData.metadataLanguage || ""
+  );
+  const [genre, setGenre] = useState<string>(
+    savedData.genre || initialData.genre || ""
+  );
+  const [subgenre, setSubgenre] = useState<string>(
+    savedData.subgenre || initialData.subgenre || ""
+  );
+  const [copyrightLine, setCopyrightLine] = useState<string>(
+    savedData.copyrightLine || initialData.copyrightLine || ""
+  );
+  const [releaseName, setReleaseName] = useState<string>(
+    savedData.releaseName || initialData.releaseName || ""
+  );
 
-  // Update parent component whenever any value changes
+  // Save to session storage whenever any value changes
   useEffect(() => {
-    const updatedData = {
-      ...initialData,
+    const dataToSave = {
       primaryArtists,
       featuredArtists,
       deliverFeaturedAsPrimary,
@@ -101,9 +122,14 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
       genre,
       subgenre,
       copyrightLine,
+      releaseName,
+      upc: initialData.upc,
+      catalogNumber: initialData.catalogNumber,
+      format: initialData.format,
     };
-    // Store in session storage
-    sessionStorage.setItem('basicInfoData', JSON.stringify(updatedData));
+    
+    sessionStorage.setItem('basicInfoData', JSON.stringify(dataToSave));
+    onUpdateReleaseName(releaseName);
   }, [
     primaryArtists,
     featuredArtists,
@@ -113,6 +139,11 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
     genre,
     subgenre,
     copyrightLine,
+    releaseName,
+    initialData.upc,
+    initialData.catalogNumber,
+    initialData.format,
+    onUpdateReleaseName,
   ]);
 
   const handlePrimaryArtistKeyDown = (e: React.KeyboardEvent) => {
@@ -179,8 +210,8 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
         <div>
           <Label>Release Name</Label>
           <Input
-            value={initialData.releaseName}
-            onChange={(e) => onUpdateReleaseName(e.target.value)}
+            value={releaseName}
+            onChange={(e) => setReleaseName(e.target.value)}
           />
         </div>
 
