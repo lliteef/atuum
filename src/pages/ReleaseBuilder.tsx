@@ -14,6 +14,28 @@ import { useToast } from "@/components/ui/use-toast";
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
 
+interface Track {
+  id: string;
+  title: string;
+  version?: string;
+  isrc?: string;
+  autoAssignIsrc: boolean;
+  lyricsLanguage: string;
+  explicitContent: "None" | "Explicit" | "Clean";
+  lyrics?: string;
+  primaryArtists: string[];
+  featuredArtists: string[];
+  remixers: string[];
+  songwriters: string[];
+  producers: string[];
+  additionalContributors: {
+    role: string;
+    names: string[];
+    currentName?: string;
+  }[];
+  pLine: string;
+}
+
 export interface ReleaseData {
   releaseName: string;
   upc?: string;
@@ -27,19 +49,7 @@ export interface ReleaseData {
   label?: string;
   copyrightLine?: string;
   artworkUrl?: string;
-  tracks: {
-    title: string;
-    version?: string;
-    isrc?: string;
-    explicitContent: "None" | "Explicit" | "Clean";
-    lyrics?: string;
-    primaryArtists: string[];
-    featuredArtists: string[];
-    remixers: string[];
-    songwriters: string[];
-    producers: string[];
-    pLine: string;
-  }[];
+  tracks: Track[];
   releaseDate?: Date;
   salesStartDate?: Date;
   presaveOption?: string;
@@ -146,7 +156,7 @@ export default function ReleaseBuilder() {
           )}
           {currentSection === "tracks" && (
             <Tracks 
-              initialData={releaseData}
+              initialData={{ tracks: releaseData.tracks }}
               onTracksUpdate={(tracks) => updateReleaseData({ tracks })}
               onNext={() => handleSectionChange("scheduling")}
             />
@@ -160,13 +170,6 @@ export default function ReleaseBuilder() {
           )}
           {currentSection === "territories" && (
             <TerritoriesAndServices
-              initialData={releaseData}
-              onTerritoriesUpdate={(territories, services) => 
-                updateReleaseData({ 
-                  selectedTerritories: territories,
-                  selectedServices: services 
-                })
-              }
               onNext={() => handleSectionChange("publishing")}
             />
           )}
