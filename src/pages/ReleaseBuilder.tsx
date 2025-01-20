@@ -8,7 +8,7 @@ import { Scheduling } from "@/components/release-builder/Scheduling";
 import { TerritoriesAndServices } from "@/components/release-builder/TerritoriesAndServices";
 import { Publishing } from "@/components/release-builder/Publishing";
 import { Overview } from "@/components/release-builder/Overview";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
@@ -61,23 +61,45 @@ export interface ReleaseData {
   publisherName?: string;
 }
 
+const STORAGE_KEY = 'releaseBuilderData';
+
 export default function ReleaseBuilder() {
   const location = useLocation();
-  const [currentSection, setCurrentSection] = useState<Section>("basic-info");
+  const [currentSection, setCurrentSection] = useState<Section>(() => {
+    const savedSection = sessionStorage.getItem('currentSection');
+    return (savedSection as Section) || "basic-info";
+  });
   const [releaseStatus, setReleaseStatus] = useState<ReleaseStatus>("In Progress");
   const { toast } = useToast();
   
-  const [releaseData, setReleaseData] = useState<ReleaseData>({
-    releaseName: location.state?.releaseName || "New Release",
-    upc: location.state?.upc,
-    catalogNumber: location.state?.releaseNo || "",
-    format: location.state?.format || "Single",
-    primaryArtists: [],
-    featuredArtists: [],
-    tracks: [],
-    selectedTerritories: [],
-    selectedServices: [],
+  const [releaseData, setReleaseData] = useState<ReleaseData>(() => {
+    const savedData = sessionStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      // Convert date strings back to Date objects
+      if (parsedData.releaseDate) parsedData.releaseDate = new Date(parsedData.releaseDate);
+      if (parsedData.salesStartDate) parsedData.salesStartDate = new Date(parsedData.salesStartDate);
+      if (parsedData.presaveDate) parsedData.presaveDate = new Date(parsedData.presaveDate);
+      return parsedData;
+    }
+    return {
+      releaseName: location.state?.releaseName || "New Release",
+      upc: location.state?.upc,
+      catalogNumber: location.state?.releaseNo || "",
+      format: location.state?.format || "Single",
+      primaryArtists: [],
+      featuredArtists: [],
+      tracks: [],
+      selectedTerritories: [],
+      selectedServices: [],
+    };
   });
+
+  // Save data to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(releaseData));
+    sessionStorage.setItem('currentSection', currentSection);
+  }, [releaseData, currentSection]);
 
   const validateRelease = () => {
     const errors: string[] = [];
@@ -127,6 +149,10 @@ export default function ReleaseBuilder() {
       title: "Release submitted",
       description: "Your release has been submitted successfully",
     });
+    
+    // Clear session storage after successful submission
+    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem('currentSection');
   };
 
   return (
