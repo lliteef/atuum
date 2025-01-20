@@ -31,37 +31,39 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
         </Alert>
       )}
 
-      <div className="grid gap-6">
-        {/* Basic Info Card */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Basic Info and Artwork Card */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Music2 className="h-5 w-5" />
-            Basic Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Release Name</p>
-              <p className="font-medium">{releaseData.releaseName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">UPC</p>
-              <p className="font-medium">{releaseData.upc || "Will be assigned"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Catalog Number</p>
-              <p className="font-medium">{releaseData.catalogNumber}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Format</p>
-              <p className="font-medium">{releaseData.format}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Genre</p>
-              <p className="font-medium">{releaseData.genre || "Not specified"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Subgenre</p>
-              <p className="font-medium">{releaseData.subgenre || "Not specified"}</p>
+          <div className="flex gap-6">
+            {/* Artwork Preview */}
+            {releaseData.artworkUrl && (
+              <div className="w-32 h-32 flex-shrink-0">
+                <img
+                  src={releaseData.artworkUrl}
+                  alt="Release artwork"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </div>
+            )}
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Music2 className="h-5 w-5" />
+                Basic Information
+              </h3>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-sm text-muted-foreground">Release Name</p>
+                  <p className="font-medium">{releaseData.releaseName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">UPC</p>
+                  <p className="font-medium">{releaseData.upc || "Will be assigned"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Format</p>
+                  <p className="font-medium">{releaseData.format}</p>
+                </div>
+              </div>
             </div>
           </div>
         </Card>
@@ -96,22 +98,8 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
           </div>
         </Card>
 
-        {/* Artwork Preview */}
-        {releaseData.artworkUrl && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Artwork</h3>
-            <div className="w-32 h-32 relative">
-              <img
-                src={releaseData.artworkUrl}
-                alt="Release artwork"
-                className="w-full h-full object-cover rounded-lg"
-              />
-            </div>
-          </Card>
-        )}
-
         {/* Tracks Summary */}
-        <Card className="p-6">
+        <Card className="p-6 md:col-span-2">
           <h3 className="text-lg font-semibold mb-4">Tracks</h3>
           <ScrollArea className="h-48">
             <div className="space-y-2">
