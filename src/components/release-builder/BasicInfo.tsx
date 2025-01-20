@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,19 +62,58 @@ interface BasicInfoProps {
     upc?: string;
     catalogNumber: string;
     format: string;
+    metadataLanguage?: string;
+    primaryArtists?: string[];
+    featuredArtists?: string[];
+    genre?: string;
+    subgenre?: string;
+    label?: string;
+    copyrightLine?: string;
+    deliverFeaturedAsPrimary?: boolean;
   };
   onUpdateReleaseName: (name: string) => void;
   onNext: () => void;
 }
 
 export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInfoProps) {
-  const [primaryArtists, setPrimaryArtists] = useState<string[]>([]);
-  const [featuredArtists, setFeaturedArtists] = useState<string[]>([]);
+  const [primaryArtists, setPrimaryArtists] = useState<string[]>(initialData.primaryArtists || []);
+  const [featuredArtists, setFeaturedArtists] = useState<string[]>(initialData.featuredArtists || []);
   const [currentPrimaryArtist, setCurrentPrimaryArtist] = useState("");
   const [currentFeaturedArtist, setCurrentFeaturedArtist] = useState("");
-  const [deliverFeaturedAsPrimary, setDeliverFeaturedAsPrimary] = useState(false);
+  const [deliverFeaturedAsPrimary, setDeliverFeaturedAsPrimary] = useState(initialData.deliverFeaturedAsPrimary || false);
   const [labels, setLabels] = useState<string[]>(["Amber Records"]);
+  const [selectedLabel, setSelectedLabel] = useState<string>(initialData.label || "Amber Records");
   const [newLabel, setNewLabel] = useState("");
+  const [metadataLanguage, setMetadataLanguage] = useState<string>(initialData.metadataLanguage || "");
+  const [genre, setGenre] = useState<string>(initialData.genre || "");
+  const [subgenre, setSubgenre] = useState<string>(initialData.subgenre || "");
+  const [copyrightLine, setCopyrightLine] = useState<string>(initialData.copyrightLine || "");
+
+  // Update parent component whenever any value changes
+  useEffect(() => {
+    const updatedData = {
+      ...initialData,
+      primaryArtists,
+      featuredArtists,
+      deliverFeaturedAsPrimary,
+      label: selectedLabel,
+      metadataLanguage,
+      genre,
+      subgenre,
+      copyrightLine,
+    };
+    // Store in session storage
+    sessionStorage.setItem('basicInfoData', JSON.stringify(updatedData));
+  }, [
+    primaryArtists,
+    featuredArtists,
+    deliverFeaturedAsPrimary,
+    selectedLabel,
+    metadataLanguage,
+    genre,
+    subgenre,
+    copyrightLine,
+  ]);
 
   const handlePrimaryArtistKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && currentPrimaryArtist.trim()) {
@@ -100,7 +139,9 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
 
   const addNewLabel = () => {
     if (newLabel.trim() && !labels.includes(newLabel.trim())) {
-      setLabels([...labels, newLabel.trim()]);
+      const updatedLabels = [...labels, newLabel.trim()];
+      setLabels(updatedLabels);
+      setSelectedLabel(newLabel.trim());
       setNewLabel("");
     }
   };
@@ -117,7 +158,11 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
 
         <div>
           <Label>Metadata Language</Label>
-          <Select required>
+          <Select 
+            required
+            value={metadataLanguage}
+            onValueChange={setMetadataLanguage}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
@@ -204,14 +249,18 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
 
         <div>
           <Label>Genre</Label>
-          <Select required>
+          <Select 
+            required
+            value={genre}
+            onValueChange={setGenre}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select genre" />
             </SelectTrigger>
             <SelectContent>
-              {genres.map((genre) => (
-                <SelectItem key={genre} value={genre.toLowerCase()}>
-                  {genre}
+              {genres.map((g) => (
+                <SelectItem key={g} value={g.toLowerCase()}>
+                  {g}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -220,14 +269,17 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
 
         <div>
           <Label>Subgenre</Label>
-          <Select>
+          <Select
+            value={subgenre}
+            onValueChange={setSubgenre}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select subgenre" />
             </SelectTrigger>
             <SelectContent>
-              {subgenres.map((subgenre) => (
-                <SelectItem key={subgenre} value={subgenre.toLowerCase()}>
-                  {subgenre}
+              {subgenres.map((sg) => (
+                <SelectItem key={sg} value={sg.toLowerCase()}>
+                  {sg}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -253,7 +305,10 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
         <div>
           <Label>Label Name / Imprint</Label>
           <div className="flex gap-2">
-            <Select>
+            <Select
+              value={selectedLabel}
+              onValueChange={setSelectedLabel}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select label" />
               </SelectTrigger>
@@ -277,7 +332,11 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
 
         <div>
           <Label>© Line</Label>
-          <Input placeholder="2025 Amber Records" />
+          <Input 
+            placeholder="2025 Amber Records" 
+            value={copyrightLine}
+            onChange={(e) => setCopyrightLine(e.target.value)}
+          />
         </div>
 
         <Button 

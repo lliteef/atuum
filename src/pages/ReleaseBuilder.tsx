@@ -129,7 +129,11 @@ export default function ReleaseBuilder() {
   };
 
   const updateReleaseData = (updates: Partial<ReleaseData>) => {
-    setReleaseData(prev => ({ ...prev, ...updates }));
+    setReleaseData(prev => {
+      const updated = { ...prev, ...updates };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const handleSubmitRelease = () => {
