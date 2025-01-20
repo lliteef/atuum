@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,13 +57,21 @@ const LANGUAGES = [
 ];
 
 interface TracksProps {
+  initialData?: {
+    tracks?: Track[];
+  };
+  onTracksUpdate?: (tracks: Track[]) => void;
   onNext?: () => void;
 }
 
-export function Tracks({ onNext }: TracksProps) {
-  const [tracks, setTracks] = useState<Track[]>([]);
+export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
+  const [tracks, setTracks] = useState<Track[]>(initialData?.tracks || []);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    onTracksUpdate?.(tracks);
+  }, [tracks, onTracksUpdate]);
 
   const selectedTrack = tracks.find(track => track.id === selectedTrackId);
   const selectedTrackIndex = tracks.findIndex(track => track.id === selectedTrackId);

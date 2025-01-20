@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -23,15 +23,39 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface SchedulingProps {
-  onNext: () => void;
+  initialData?: {
+    releaseDate?: Date;
+    salesStartDate?: Date;
+    presaveOption?: string;
+    presaveDate?: Date;
+    pricing?: string;
+  };
+  onSchedulingUpdate?: (data: {
+    releaseDate?: Date;
+    salesStartDate?: Date;
+    presaveOption?: string;
+    presaveDate?: Date;
+    pricing?: string;
+  }) => void;
+  onNext?: () => void;
 }
 
-export function Scheduling({ onNext }: SchedulingProps) {
-  const [releaseDate, setReleaseDate] = useState<Date>();
-  const [salesDate, setSalesDate] = useState<Date>();
-  const [presaveOption, setPresaveOption] = useState("immediately");
-  const [presaveDate, setPresaveDate] = useState<Date>();
-  const [pricing, setPricing] = useState("mid");
+export function Scheduling({ initialData, onSchedulingUpdate, onNext }: SchedulingProps) {
+  const [releaseDate, setReleaseDate] = useState<Date | undefined>(initialData?.releaseDate);
+  const [salesDate, setSalesDate] = useState<Date | undefined>(initialData?.salesStartDate);
+  const [presaveOption, setPresaveOption] = useState<string>(initialData?.presaveOption || "immediately");
+  const [presaveDate, setPresaveDate] = useState<Date | undefined>(initialData?.presaveDate);
+  const [pricing, setPricing] = useState<string>(initialData?.pricing || "mid");
+
+  useEffect(() => {
+    onSchedulingUpdate?.({
+      releaseDate,
+      salesStartDate: salesDate,
+      presaveOption,
+      presaveDate,
+      pricing
+    });
+  }, [releaseDate, salesDate, presaveOption, presaveDate, pricing, onSchedulingUpdate]);
 
   return (
     <div className="container max-w-3xl mx-auto py-6 space-y-8">

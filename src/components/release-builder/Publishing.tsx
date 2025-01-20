@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,13 +6,28 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowRight } from "lucide-react";
 
 interface PublishingProps {
-  onNext: () => void;
-  labelName?: string;
+  initialData?: {
+    publishingType?: string;
+    publisherName?: string;
+    labelName?: string;
+  };
+  onPublishingUpdate?: (data: {
+    publishingType: string;
+    publisherName?: string;
+  }) => void;
+  onNext?: () => void;
 }
 
-export function Publishing({ onNext, labelName = "Amber Records" }: PublishingProps) {
-  const [publishingType, setPublishingType] = useState<string>("controlled");
-  const [publisherName, setPublisherName] = useState("");
+export function Publishing({ initialData, onPublishingUpdate, onNext }: PublishingProps) {
+  const [publishingType, setPublishingType] = useState<string>(initialData?.publishingType || "controlled");
+  const [publisherName, setPublisherName] = useState(initialData?.publisherName || "");
+
+  useEffect(() => {
+    onPublishingUpdate?.({
+      publishingType,
+      publisherName: publishingType === "publisher" ? publisherName : undefined
+    });
+  }, [publishingType, publisherName, onPublishingUpdate]);
 
   return (
     <div className="p-6 space-y-6">
@@ -30,7 +45,7 @@ export function Publishing({ onNext, labelName = "Amber Records" }: PublishingPr
           {publishingType === "controlled" && (
             <div className="ml-6 mt-2">
               <Label>Imprint/Label Name</Label>
-              <Input value={labelName} disabled className="bg-muted" />
+              <Input value={initialData?.labelName} disabled className="bg-muted" />
             </div>
           )}
 

@@ -8,10 +8,11 @@ interface ArtworkProps {
   initialData?: {
     artworkUrl?: string;
   };
+  onArtworkUpdate?: (url: string) => void;
   onNext?: () => void;
 }
 
-export function Artwork({ initialData, onNext }: ArtworkProps) {
+export function Artwork({ initialData, onArtworkUpdate, onNext }: ArtworkProps) {
   const [artworkUrl, setArtworkUrl] = useState<string>(
     initialData?.artworkUrl || ""
   );
@@ -62,7 +63,9 @@ export function Artwork({ initialData, onNext }: ArtworkProps) {
       setUploadProgress(progress);
       if (progress >= 100) {
         clearInterval(interval);
-        setArtworkUrl(URL.createObjectURL(file));
+        const url = URL.createObjectURL(file);
+        setArtworkUrl(url);
+        onArtworkUpdate?.(url);
         toast({
           title: "Upload complete",
           description: "Artwork has been successfully uploaded.",
