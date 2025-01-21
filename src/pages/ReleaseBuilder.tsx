@@ -74,25 +74,9 @@ export default function ReleaseBuilder() {
   
   const [releaseData, setReleaseData] = useState<ReleaseData>(() => {
     const savedData = sessionStorage.getItem(STORAGE_KEY);
-    const basicInfoData = sessionStorage.getItem('basicInfoData');
+    const basicInfoData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
+    const territoriesData = JSON.parse(sessionStorage.getItem('territoriesAndServicesData') || '{}');
     
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      // Convert date strings back to Date objects
-      if (parsedData.releaseDate) parsedData.releaseDate = new Date(parsedData.releaseDate);
-      if (parsedData.salesStartDate) parsedData.salesStartDate = new Date(parsedData.salesStartDate);
-      if (parsedData.presaveDate) parsedData.presaveDate = new Date(parsedData.presaveDate);
-      
-      // Merge with basicInfoData if it exists
-      if (basicInfoData) {
-        const parsedBasicInfo = JSON.parse(basicInfoData);
-        return { ...parsedData, ...parsedBasicInfo };
-      }
-      
-      return parsedData;
-    }
-
-    // Initialize with location state or default values
     const initialData = {
       releaseName: location.state?.releaseName || "New Release",
       upc: location.state?.upc,
@@ -101,37 +85,36 @@ export default function ReleaseBuilder() {
       primaryArtists: [],
       featuredArtists: [],
       tracks: [],
-      selectedTerritories: [],
-      selectedServices: [],
+      selectedTerritories: territoriesData.selectedTerritories || [],
+      selectedServices: territoriesData.selectedServices || [],
+      ...basicInfoData, // Merge basicInfoData
     };
 
-    // Merge with basicInfoData if it exists
-    if (basicInfoData) {
-      const parsedBasicInfo = JSON.parse(basicInfoData);
-      return { ...initialData, ...parsedBasicInfo };
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      return { ...initialData, ...parsedData };
     }
 
     return initialData;
   });
 
-  // Save data to sessionStorage whenever it changes
+  // Save releaseData to session storage whenever it changes
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(releaseData));
-    sessionStorage.setItem('currentSection', currentSection);
-  }, [releaseData, currentSection]);
+  }, [releaseData]);
 
   const validateRelease = () => {
     const errors: string[] = [];
 
     if (!releaseData.releaseName) errors.push("Release name is required");
     if (!releaseData.metadataLanguage) errors.push("Metadata language is required");
-    if (releaseData.primaryArtists.length === 0) errors.push("At least one primary artist is required");
+    if (!releaseData.primaryArtists?.length) errors.push("At least one primary artist is required");
     if (!releaseData.genre) errors.push("Genre is required");
     if (!releaseData.artworkUrl) errors.push("Artwork is required");
-    if (releaseData.tracks.length === 0) errors.push("At least one track is required");
+    if (!releaseData.tracks?.length) errors.push("At least one track is required");
     if (!releaseData.releaseDate) errors.push("Release date is required");
-    if (releaseData.selectedTerritories.length === 0) errors.push("At least one territory must be selected");
-    if (releaseData.selectedServices.length === 0) errors.push("At least one service must be selected");
+    if (!releaseData.selectedTerritories?.length) errors.push("At least one territory must be selected");
+    if (!releaseData.selectedServices?.length) errors.push("At least one service must be selected");
     if (!releaseData.publishingType) errors.push("Publishing type must be selected");
 
     return errors;
@@ -220,6 +203,7 @@ export default function ReleaseBuilder() {
           {currentSection === "territories" && (
             <TerritoriesAndServices
               onNext={() => handleSectionChange("publishing")}
+              onUpdateData={(data) => updateReleaseData(data)}
             />
           )}
           {currentSection === "publishing" && (

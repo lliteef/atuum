@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -55,11 +55,29 @@ const streamingServices = [
 
 interface TerritoriesAndServicesProps {
   onNext: () => void;
+  onUpdateData: (data: { selectedTerritories: string[], selectedServices: string[] }) => void;
 }
 
-export function TerritoriesAndServices({ onNext }: TerritoriesAndServicesProps) {
-  const [selectedTerritories, setSelectedTerritories] = useState<string[]>(territories);
-  const [selectedServices, setSelectedServices] = useState<string[]>(streamingServices);
+export function TerritoriesAndServices({ onNext, onUpdateData }: TerritoriesAndServicesProps) {
+  // Initialize state from sessionStorage
+  const savedData = JSON.parse(sessionStorage.getItem('territoriesAndServicesData') || '{}');
+  
+  const [selectedTerritories, setSelectedTerritories] = useState<string[]>(
+    savedData.selectedTerritories || territories
+  );
+  const [selectedServices, setSelectedServices] = useState<string[]>(
+    savedData.selectedServices || streamingServices
+  );
+
+  // Save to session storage and update parent whenever selections change
+  useEffect(() => {
+    const dataToSave = {
+      selectedTerritories,
+      selectedServices
+    };
+    sessionStorage.setItem('territoriesAndServicesData', JSON.stringify(dataToSave));
+    onUpdateData(dataToSave);
+  }, [selectedTerritories, selectedServices, onUpdateData]);
 
   const toggleTerritory = (territory: string) => {
     setSelectedTerritories(prev =>
