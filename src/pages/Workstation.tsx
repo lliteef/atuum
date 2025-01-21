@@ -11,7 +11,7 @@ interface Release {
   releaseName: string;
   artist: string;
   upc: string;
-  status: "Moderation" | "Ready" | "Sent to Stores" | "Live";
+  status: "Moderation" | "Ready" | "Sent to Stores" | "In Progress";
   releaseDate: Date;
 }
 
@@ -64,7 +64,22 @@ export default function Workstation() {
     ? mockReleases 
     : mockReleases.filter(release => release.status === selectedStatus);
 
-  const statuses: Release["status"][] = ["Moderation", "Ready", "Sent to Stores", "Live"];
+  const statuses: Release["status"][] = ["In Progress", "Ready", "Moderation", "Sent to Stores"];
+
+  const getStatusColor = (status: Release["status"]) => {
+    switch (status) {
+      case "In Progress":
+        return "bg-[#FEF7CD] text-yellow-800";
+      case "Ready":
+        return "bg-[#F2FCE2] text-green-800";
+      case "Moderation":
+        return "bg-[#D3E4FD] text-blue-800";
+      case "Sent to Stores":
+        return "bg-[#9b87f5] text-white";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -132,7 +147,11 @@ export default function Workstation() {
               key={status}
               variant={selectedStatus === status ? "default" : "outline"}
               onClick={() => setSelectedStatus(status)}
+              className={selectedStatus === status ? "" : "hover:bg-gray-100"}
             >
+              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                getStatusColor(status).split(" ")[0]
+              }`}></span>
               {status}
             </Button>
           ))}
@@ -155,12 +174,7 @@ export default function Workstation() {
               </div>
               <div className="text-sm text-gray-400">{release.upc}</div>
               <div className="text-sm">
-                <span className={`px-2 py-1 rounded ${
-                  release.status === "Live" ? "bg-green-500/20 text-green-400" :
-                  release.status === "Moderation" ? "bg-yellow-500/20 text-yellow-400" :
-                  release.status === "Ready" ? "bg-blue-500/20 text-blue-400" :
-                  "bg-purple-500/20 text-purple-400"
-                }`}>
+                <span className={`px-2 py-1 rounded ${getStatusColor(release.status)}`}>
                   {release.status}
                 </span>
               </div>
