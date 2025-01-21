@@ -23,7 +23,7 @@ const mockReleases: Release[] = [
     releaseName: "Summer Vibes",
     artist: "DJ Cool",
     upc: "123456789012",
-    status: "Live",
+    status: "Sent to Stores",
     releaseDate: new Date(2024, 2, 15),
   },
   {
@@ -32,7 +32,7 @@ const mockReleases: Release[] = [
     releaseName: "Winter Dreams",
     artist: "Frosty Band",
     upc: "123456789013",
-    status: "Live",
+    status: "Ready",
     releaseDate: new Date(2024, 3, 1),
   },
   {
