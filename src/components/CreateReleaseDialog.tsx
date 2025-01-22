@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Disc, Music, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ReleaseType = "Digital" | "Music Video";
+type ReleaseType = "Digital" | "Music Video" | "Physical";
 type ReleaseFormat = "Album/Full Length" | "EP" | "Single";
 
 export function CreateReleaseDialog() {
@@ -56,8 +56,8 @@ export function CreateReleaseDialog() {
             <div className="flex gap-4">
               {[
                 { type: "Digital" as ReleaseType, icon: Music },
-                { type: "Physical" as ReleaseType, icon: Disc },
                 { type: "Music Video" as ReleaseType, icon: Video }
+                { type: "Physical" as ReleaseType, icon: Disc },
               ].map(({ type, icon: Icon }) => (
                 <Button
                   key={type}
@@ -107,7 +107,7 @@ export function CreateReleaseDialog() {
 
           {/* Release No. */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Release No. *</label>
+            <label className="text-sm font-medium">Catalog No. *</label>
             <Input
               placeholder="AAM003"
               value={releaseNo}
