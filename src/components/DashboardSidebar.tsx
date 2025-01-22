@@ -18,24 +18,19 @@ const menuItems = [
     path: "/",
   },
   {
+    title: "Marketing",
+    icon: Rocket,
+    path: "/fansifter",
+  },
+  {
     title: "Insights",
     icon: BarChart2,
     path: "/insights",
   },
   {
-    title: "Catalog",
-    icon: Music2,
-    path: "/catalog",
-  },
-  {
     title: "Accounting",
     icon: Wallet,
     path: "/accounting",
-  },
-  {
-    title: "Fansifter",
-    icon: Rocket,
-    path: "/fansifter",
   },
   {
     title: "Settings",
