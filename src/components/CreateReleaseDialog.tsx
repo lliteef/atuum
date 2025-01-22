@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, Disc, Music, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ReleaseType = "Digital" | "Physical" | "Music Video";
+// type ReleaseType = "Digital" | "Physical" | "Music Video";
 type ReleaseFormat = "Album/Full Length" | "EP" | "Single";
 
 export function CreateReleaseDialog() {
