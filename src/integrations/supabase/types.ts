@@ -62,7 +62,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_initial_system_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      get_user_roles: {
+        Args: {
+          user_id: string
+        }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_role: {
+        Args: {
+          role_to_check: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "regular_user" | "label_admin" | "moderator" | "system_admin"

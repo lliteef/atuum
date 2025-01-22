@@ -12,6 +12,8 @@ import Insights from "./pages/Insights";
 import Accounting from "./pages/Accounting";
 import Fansifter from "./pages/Fansifter";
 import ReleaseBuilder from "./pages/ReleaseBuilder";
+import Auth from "./pages/Auth";
+import ConfirmInvitation from "./pages/ConfirmInvitation";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/confirm-invitation" element={<ConfirmInvitation />} />
           <Route
             path="/"
             element={
