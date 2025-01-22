@@ -5,7 +5,7 @@ import { Link2, Share2, Target, Megaphone } from "lucide-react";
 export default function Fansifter() {
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Fansifter</h1>
+      <h1 className="text-3xl font-bold">Marketing</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="bg-card hover:bg-card/90 transition-colors">
