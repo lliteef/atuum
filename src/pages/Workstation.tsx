@@ -2,8 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Music2, BarChart2 } from "lucide-react";
 import { CreateReleaseDialog } from "@/components/CreateReleaseDialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 interface Release {
   id: string;
@@ -48,6 +50,33 @@ const mockReleases: Release[] = [
 
 export default function Workstation() {
   const [selectedStatus, setSelectedStatus] = useState<Release["status"] | "All">("All");
+  const [userInfo, setUserInfo] = useState<{
+    email: string | undefined;
+    id: string | undefined;
+    roles: Database['public']['Enums']['app_role'][];
+  }>({
+    email: undefined,
+    id: undefined,
+    roles: [],
+  });
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: roles } = await supabase.rpc('get_user_roles', {
+          user_id: user.id
+        });
+        setUserInfo({
+          email: user.email,
+          id: user.id,
+          roles: roles || [],
+        });
+      }
+    };
+    getUserInfo();
+  }, []);
+
   const today = new Date();
 
   const recentReleases = mockReleases
@@ -83,6 +112,24 @@ export default function Workstation() {
 
   return (
     <div className="p-6 space-y-6">
+      <Card className="bg-card hover:bg-card/90 transition-colors mb-6">
+        <CardHeader>
+          <CardTitle>User Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <p><span className="text-gray-400">Email:</span> {userInfo.email}</p>
+            <p><span className="text-gray-400">ID:</span> {userInfo.id}</p>
+            <p>
+              <span className="text-gray-400">Roles:</span>{' '}
+              {userInfo.roles.length > 0 
+                ? userInfo.roles.join(', ') 
+                : 'No roles assigned'}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Catalog</h1>
         <CreateReleaseDialog />
