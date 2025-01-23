@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Music2, BarChart2 } from "lucide-react";
 import { CreateReleaseDialog } from "@/components/CreateReleaseDialog";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { WorkstationHeader } from "@/components/WorkstationHeader";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -111,122 +111,107 @@ export default function Workstation() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <Card className="bg-card hover:bg-card/90 transition-colors mb-6">
-        <CardHeader>
-          <CardTitle>User Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <p><span className="text-gray-400">Email:</span> {userInfo.email}</p>
-            <p><span className="text-gray-400">ID:</span> {userInfo.id}</p>
-            <p>
-              <span className="text-gray-400">Roles:</span>{' '}
-              {userInfo.roles.length > 0 
-                ? userInfo.roles.join(', ') 
-                : 'No roles assigned'}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Catalog</h1>
-        <CreateReleaseDialog />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-card hover:bg-card/90 transition-colors">
-          <CardHeader>
-            <CardTitle>Recent Releases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recentReleases.length > 0 ? (
-              <div className="space-y-2">
-                {recentReleases.map(release => (
-                  <div key={release.id} className="flex justify-between text-sm">
-                    <span>{release.releaseName}</span>
-                    <span className="text-gray-400">
-                      {format(release.releaseDate, "MMM d, yyyy")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400">No recent releases</p>
-            )}
-          </CardContent>
-        </Card>
+    <div className="min-h-screen flex flex-col">
+      <WorkstationHeader />
+      <div className="flex-1 p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Catalog</h1>
+          <CreateReleaseDialog />
+        </div>
         
-        <Card className="bg-card hover:bg-card/90 transition-colors">
-          <CardHeader>
-            <CardTitle>Upcoming Releases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {upcomingReleases.length > 0 ? (
-              <div className="space-y-2">
-                {upcomingReleases.map(release => (
-                  <div key={release.id} className="flex justify-between text-sm">
-                    <span>{release.releaseName}</span>
-                    <span className="text-gray-400">
-                      {format(release.releaseDate, "MMM d, yyyy")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400">No upcoming releases</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          <Button
-            variant={selectedStatus === "All" ? "default" : "outline"}
-            onClick={() => setSelectedStatus("All")}
-          >
-            All
-          </Button>
-          {statuses.map(status => (
-            <Button
-              key={status}
-              variant={selectedStatus === status ? "default" : "outline"}
-              onClick={() => setSelectedStatus(status)}
-              className={selectedStatus === status ? "" : "hover:bg-gray-100"}
-            >
-              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                getStatusColor(status).split(" ")[0]
-              }`}></span>
-              {status}
-            </Button>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <CardTitle>Recent Releases</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {recentReleases.length > 0 ? (
+                <div className="space-y-2">
+                  {recentReleases.map(release => (
+                    <div key={release.id} className="flex justify-between text-sm">
+                      <span>{release.releaseName}</span>
+                      <span className="text-gray-400">
+                        {format(release.releaseDate, "MMM d, yyyy")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400">No recent releases</p>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <CardTitle>Upcoming Releases</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upcomingReleases.length > 0 ? (
+                <div className="space-y-2">
+                  {upcomingReleases.map(release => (
+                    <div key={release.id} className="flex justify-between text-sm">
+                      <span>{release.releaseName}</span>
+                      <span className="text-gray-400">
+                        {format(release.releaseDate, "MMM d, yyyy")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400">No upcoming releases</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="space-y-2">
-          {filteredReleases.map(release => (
-            <div
-              key={release.id}
-              className="flex items-center gap-4 p-4 bg-card rounded-lg hover:bg-card/90 transition-colors"
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              variant={selectedStatus === "All" ? "default" : "outline"}
+              onClick={() => setSelectedStatus("All")}
             >
-              <img
-                src={release.coverUrl}
-                alt={release.releaseName}
-                className="w-12 h-12 object-cover rounded"
-              />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium truncate">{release.releaseName}</h3>
-                <p className="text-sm text-gray-400 truncate">{release.artist}</p>
+              All
+            </Button>
+            {statuses.map(status => (
+              <Button
+                key={status}
+                variant={selectedStatus === status ? "default" : "outline"}
+                onClick={() => setSelectedStatus(status)}
+                className={selectedStatus === status ? "" : "hover:bg-gray-100"}
+              >
+                <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                  getStatusColor(status).split(" ")[0]
+                }`}></span>
+                {status}
+              </Button>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            {filteredReleases.map(release => (
+              <div
+                key={release.id}
+                className="flex items-center gap-4 p-4 bg-card rounded-lg hover:bg-card/90 transition-colors"
+              >
+                <img
+                  src={release.coverUrl}
+                  alt={release.releaseName}
+                  className="w-12 h-12 object-cover rounded"
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium truncate">{release.releaseName}</h3>
+                  <p className="text-sm text-gray-400 truncate">{release.artist}</p>
+                </div>
+                <div className="text-sm text-gray-400">{release.upc}</div>
+                <div className="text-sm">
+                  <span className={`px-2 py-1 rounded ${getStatusColor(release.status)}`}>
+                    {release.status}
+                  </span>
+                </div>
               </div>
-              <div className="text-sm text-gray-400">{release.upc}</div>
-              <div className="text-sm">
-                <span className={`px-2 py-1 rounded ${getStatusColor(release.status)}`}>
-                  {release.status}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
