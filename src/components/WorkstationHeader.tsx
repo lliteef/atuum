@@ -3,6 +3,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
+const getRoleDisplayName = (role: Database['public']['Enums']['app_role']): string => {
+  const displayNames: Record<Database['public']['Enums']['app_role'], string> = {
+    'system_admin': 'System Administrator',
+    'label_admin': 'Label Administrator',
+    'moderator': 'Moderator',
+    'regular_user': 'Regular User'
+  };
+  return displayNames[role];
+};
+
 export function WorkstationHeader() {
   const [userInfo, setUserInfo] = useState<{
     email: string | undefined;
@@ -46,7 +56,11 @@ export function WorkstationHeader() {
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">{userInfo.email}</span>
           <span className="text-muted-foreground">|</span>
-          <span className="text-accent">{userInfo.roles.join(', ') || 'No roles'}</span>
+          <span className="text-accent">
+            {userInfo.roles.length > 0 
+              ? userInfo.roles.map(role => getRoleDisplayName(role)).join(', ')
+              : 'No roles'}
+          </span>
         </div>
       </div>
     </div>
