@@ -44,10 +44,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
   <SidebarProvider>
-    <div className="min-h-screen flex flex-col w-full bg-[#0F172A] text-white">
-      <WorkstationHeader />
-      <div className="flex flex-1">
-        <DashboardSidebar />
+    <div className="min-h-screen flex w-full bg-[#0F172A] text-white">
+      <DashboardSidebar />
+      <div className="flex-1 flex flex-col">
+        <WorkstationHeader />
         <main className="flex-1 overflow-auto">
           {children}
         </main>
