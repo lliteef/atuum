@@ -112,7 +112,6 @@ export default function Workstation() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <WorkstationHeader />
       <div className="flex-1 p-6 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Catalog</h1>

@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { WorkstationHeader } from "@/components/WorkstationHeader";
 
 import Workstation from "./pages/Workstation";
 import Settings from "./pages/Settings";
@@ -41,6 +42,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? children : <Navigate to="/auth" />;
 };
 
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="min-h-screen flex flex-col w-full bg-[#0F172A] text-white">
+      <WorkstationHeader />
+      <div className="flex flex-1">
+        <DashboardSidebar />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  </SidebarProvider>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -50,18 +65,18 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/confirm-invitation" element={<ConfirmInvitation />} />
+          <Route path="/release-builder" element={
+            <ProtectedRoute>
+              <ReleaseBuilder />
+            </ProtectedRoute>
+          } />
           <Route
             path="/"
             element={
               <ProtectedRoute>
-                <SidebarProvider>
-                  <div className="min-h-screen flex w-full bg-[#0F172A] text-white">
-                    <DashboardSidebar />
-                    <main className="flex-1 overflow-auto">
-                      <Workstation />
-                    </main>
-                  </div>
-                </SidebarProvider>
+                <DashboardLayout>
+                  <Workstation />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />
@@ -69,7 +84,9 @@ const App = () => (
             path="/settings" 
             element={
               <ProtectedRoute>
-                <Settings />
+                <DashboardLayout>
+                  <Settings />
+                </DashboardLayout>
               </ProtectedRoute>
             } 
           />
@@ -77,7 +94,9 @@ const App = () => (
             path="/insights" 
             element={
               <ProtectedRoute>
-                <Insights />
+                <DashboardLayout>
+                  <Insights />
+                </DashboardLayout>
               </ProtectedRoute>
             } 
           />
@@ -85,7 +104,9 @@ const App = () => (
             path="/accounting" 
             element={
               <ProtectedRoute>
-                <Accounting />
+                <DashboardLayout>
+                  <Accounting />
+                </DashboardLayout>
               </ProtectedRoute>
             } 
           />
@@ -93,15 +114,9 @@ const App = () => (
             path="/fansifter" 
             element={
               <ProtectedRoute>
-                <Fansifter />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/release-builder" 
-            element={
-              <ProtectedRoute>
-                <ReleaseBuilder />
+                <DashboardLayout>
+                  <Fansifter />
+                </DashboardLayout>
               </ProtectedRoute>
             } 
           />
