@@ -56,7 +56,7 @@ export function CreateReleaseDialog() {
             <div className="flex gap-4">
               {[
                 { type: "Digital" as ReleaseType, icon: Music },
-                { type: "Music Video" as ReleaseType, icon: Video }
+                { type: "Music Video" as ReleaseType, icon: Video },
                 { type: "Physical" as ReleaseType, icon: Disc },
               ].map(({ type, icon: Icon }) => (
                 <Button
