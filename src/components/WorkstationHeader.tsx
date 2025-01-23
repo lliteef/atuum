@@ -18,28 +18,46 @@ export function WorkstationHeader() {
     email: string | undefined;
     id: string | undefined;
     roles: Database['public']['Enums']['app_role'][];
+    firstName: string | undefined;
+    lastName: string | undefined;
   }>({
     email: undefined,
     id: undefined,
     roles: [],
+    firstName: undefined,
+    lastName: undefined,
   });
 
   useEffect(() => {
     const getUserInfo = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: roles } = await supabase.rpc('get_user_roles', {
-          user_id: user.id
-        });
+        const [{ data: roles }, { data: profile }] = await Promise.all([
+          supabase.rpc('get_user_roles', {
+            user_id: user.id
+          }),
+          supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', user.id)
+            .single()
+        ]);
+
         setUserInfo({
           email: user.email,
           id: user.id,
           roles: roles || [],
+          firstName: profile?.first_name,
+          lastName: profile?.last_name,
         });
       }
     };
     getUserInfo();
   }, []);
+
+  const displayName = userInfo.firstName && userInfo.lastName
+    ? `${userInfo.firstName} ${userInfo.lastName}`
+    : userInfo.email;
 
   return (
     <div className="bg-card border-b border-border/40">
@@ -54,7 +72,7 @@ export function WorkstationHeader() {
         </div>
         
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">{userInfo.email}</span>
+          <span className="text-muted-foreground">{displayName}</span>
           <span className="text-muted-foreground">|</span>
           <span className="text-accent">
             {userInfo.roles.length > 0 
