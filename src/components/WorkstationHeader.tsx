@@ -98,12 +98,11 @@ export function WorkstationHeader() {
           </div>
           <Button 
             variant="ghost" 
-            size="sm"
+            size="icon"
             onClick={handleSignOut}
             className="text-muted-foreground hover:text-white"
           >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign out
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
