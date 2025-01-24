@@ -1,6 +1,10 @@
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { LogOut } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 const getRoleDisplayName = (role: Database['public']['Enums']['app_role']): string => {
@@ -14,6 +18,7 @@ const getRoleDisplayName = (role: Database['public']['Enums']['app_role']): stri
 };
 
 export function WorkstationHeader() {
+  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState<{
     email: string | undefined;
     id: string | undefined;
@@ -55,6 +60,16 @@ export function WorkstationHeader() {
     getUserInfo();
   }, []);
 
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+      toast.success('Signed out successfully');
+    } catch (error) {
+      toast.error('Error signing out');
+    }
+  };
+
   const displayName = userInfo.firstName && userInfo.lastName
     ? `${userInfo.firstName} ${userInfo.lastName}`
     : userInfo.email;
@@ -71,14 +86,25 @@ export function WorkstationHeader() {
           <h1 className="text-xl font-semibold">Dashboard</h1>
         </div>
         
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">{displayName}</span>
-          <span className="text-muted-foreground">|</span>
-          <span className="text-accent">
-            {userInfo.roles.length > 0 
-              ? userInfo.roles.map(role => getRoleDisplayName(role)).join(', ')
-              : 'No roles'}
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">{displayName}</span>
+            <span className="text-muted-foreground">|</span>
+            <span className="text-accent">
+              {userInfo.roles.length > 0 
+                ? userInfo.roles.map(role => getRoleDisplayName(role)).join(', ')
+                : 'No roles'}
+            </span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={handleSignOut}
+            className="text-muted-foreground hover:text-white"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign out
+          </Button>
         </div>
       </div>
     </div>
