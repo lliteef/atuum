@@ -35,6 +35,8 @@ interface Track {
     currentName?: string;
   }[];
   pLine: string;
+  audioUrl?: string;
+  audioFilename?: string;
 }
 
 export interface ReleaseData {
@@ -168,33 +170,67 @@ export default function ReleaseBuilder() {
         return;
       }
 
-      const { error } = await supabase.from('releases').insert({
-        release_name: releaseData.releaseName,
-        upc: releaseData.upc,
-        catalog_number: releaseData.catalogNumber,
-        format: releaseData.format?.toLowerCase(),
-        metadata_language: releaseData.metadataLanguage,
-        primary_artists: releaseData.primaryArtists,
-        featured_artists: releaseData.featuredArtists,
-        genre: releaseData.genre?.toLowerCase(),
-        subgenre: releaseData.subgenre?.toLowerCase(),
-        label: releaseData.label,
-        copyright_line: releaseData.copyrightLine,
-        artwork_url: releaseData.artworkUrl,
-        release_date: releaseData.releaseDate,
-        sales_start_date: releaseData.salesStartDate,
-        presave_option: releaseData.presaveOption,
-        presave_date: releaseData.presaveDate,
-        pricing: releaseData.pricing,
-        selected_territories: releaseData.selectedTerritories,
-        selected_services: releaseData.selectedServices,
-        publishing_type: releaseData.publishingType,
-        publisher_name: releaseData.publisherName,
-        status: 'Moderation',
-        created_by: user.id
-      });
+      // First create the release
+      const { data: release, error } = await supabase
+        .from('releases')
+        .insert({
+          release_name: releaseData.releaseName,
+          upc: releaseData.upc,
+          catalog_number: releaseData.catalogNumber,
+          format: releaseData.format?.toLowerCase(),
+          metadata_language: releaseData.metadataLanguage,
+          primary_artists: releaseData.primaryArtists,
+          featured_artists: releaseData.featuredArtists,
+          genre: releaseData.genre?.toLowerCase(),
+          subgenre: releaseData.subgenre?.toLowerCase(),
+          label: releaseData.label,
+          copyright_line: releaseData.copyrightLine,
+          artwork_url: releaseData.artworkUrl,
+          release_date: releaseData.releaseDate,
+          sales_start_date: releaseData.salesStartDate,
+          presave_option: releaseData.presaveOption,
+          presave_date: releaseData.presaveDate,
+          pricing: releaseData.pricing,
+          selected_territories: releaseData.selectedTerritories,
+          selected_services: releaseData.selectedServices,
+          publishing_type: releaseData.publishingType,
+          publisher_name: releaseData.publisherName,
+          status: 'Moderation',
+          created_by: user.id
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Then update all tracks with the release_id
+      if (release && releaseData.tracks.length > 0) {
+        const { error: tracksError } = await supabase
+          .from('tracks')
+          .insert(
+            releaseData.tracks.map(track => ({
+              title: track.title,
+              version: track.version,
+              isrc: track.isrc,
+              lyrics_language: track.lyricsLanguage,
+              explicit_content: track.explicitContent,
+              lyrics: track.lyrics,
+              primary_artists: track.primaryArtists,
+              featured_artists: track.featuredArtists,
+              remixers: track.remixers,
+              songwriters: track.songwriters,
+              producers: track.producers,
+              additional_contributors: track.additionalContributors,
+              p_line: track.pLine,
+              audio_url: track.audioUrl,
+              audio_filename: track.audioFilename,
+              release_id: release.id,
+              created_by: user.id
+            }))
+          );
+
+        if (tracksError) throw tracksError;
+      }
 
       toast({
         title: "Release submitted",

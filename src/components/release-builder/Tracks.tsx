@@ -11,30 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Upload, ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Track {
-  id: string;
-  title: string;
-  version?: string;
-  isrc?: string;
-  autoAssignIsrc: boolean;
-  lyricsLanguage: string;
-  explicitContent: "None" | "Explicit" | "Clean";
-  lyrics?: string;
-  primaryArtists: string[];
-  featuredArtists: string[];
-  remixers: string[];
-  songwriters: string[];
-  producers: string[];
-  additionalContributors: {
-    role: string;
-    names: string[];
-    currentName?: string;
-  }[];
-  pLine: string;
-  audioUrl?: string;
-  audioFilename?: string;
-}
+import { uploadAudioFile } from "@/utils/audioUpload";
+import type { Track } from "@/types/track";
+import type { Json } from "@/integrations/supabase/types";
 
 const CONTRIBUTOR_ROLES = [
   "Co-Producer",
@@ -57,6 +36,7 @@ const LANGUAGES = [
 interface TracksProps {
   initialData?: {
     tracks?: Track[];
+    releaseId?: string; // Added to pass release ID
   };
   onTracksUpdate?: (tracks: Track[]) => void;
   onNext?: () => void;
@@ -89,7 +69,7 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
 
     for (const file of Array.from(files)) {
       try {
-        const { url, filename, filePath } = await uploadAudioFile(file, user.id);
+        const { url, filename } = await uploadAudioFile(file, user.id);
         
         const newTrack: Track = {
           id: crypto.randomUUID(),
@@ -123,11 +103,12 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
             remixers: newTrack.remixers,
             songwriters: newTrack.songwriters,
             producers: newTrack.producers,
-            additional_contributors: newTrack.additionalContributors,
+            additional_contributors: newTrack.additionalContributors as Json,
             p_line: newTrack.pLine,
             audio_url: url,
             audio_filename: filename,
-            created_by: user.id
+            created_by: user.id,
+            release_id: initialData?.releaseId // This needs to be passed from the parent
           });
 
         if (dbError) {

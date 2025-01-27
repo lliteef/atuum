@@ -20,4 +20,10 @@ export interface Track {
   pLine: string;
   audioUrl?: string;
   audioFilename?: string;
+  // Temporary state fields for artist inputs
+  currentPrimaryArtist?: string;
+  currentFeaturedArtist?: string;
+  currentRemixer?: string;
+  currentSongwriter?: string;
+  currentProducer?: string;
 }
