@@ -9,7 +9,7 @@ import { TerritoriesAndServices } from "@/components/release-builder/Territories
 import { Publishing } from "@/components/release-builder/Publishing";
 import { Overview } from "@/components/release-builder/Overview";
 import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";

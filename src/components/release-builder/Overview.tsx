@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Calendar, Globe, Music2, Users2, AlertTriangle } from "lucide-react";
+import { Calendar, Globe, Music2, Users2, AlertTriangle, Languages } from "lucide-react";
 import { ReleaseData } from "@/pages/ReleaseBuilder";
 
 interface OverviewProps {
@@ -63,6 +63,14 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
                   <p className="text-sm text-muted-foreground">Format</p>
                   <p className="font-medium">{releaseData.format}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Genre</p>
+                  <p className="font-medium">{releaseData.genre || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Metadata Language</p>
+                  <p className="font-medium">{releaseData.metadataLanguage || "Not specified"}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -78,21 +86,29 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Primary Artists</p>
               <div className="flex flex-wrap gap-2">
-                {releaseData.primaryArtists.map((artist) => (
-                  <Badge key={artist} variant="secondary">
-                    {artist}
-                  </Badge>
-                ))}
+                {releaseData.primaryArtists?.length > 0 ? (
+                  releaseData.primaryArtists.map((artist) => (
+                    <Badge key={artist} variant="secondary">
+                      {artist}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No primary artists specified</p>
+                )}
               </div>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-2">Featured Artists</p>
               <div className="flex flex-wrap gap-2">
-                {releaseData.featuredArtists.map((artist) => (
-                  <Badge key={artist} variant="secondary">
-                    {artist}
-                  </Badge>
-                ))}
+                {releaseData.featuredArtists?.length > 0 ? (
+                  releaseData.featuredArtists.map((artist) => (
+                    <Badge key={artist} variant="secondary">
+                      {artist}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No featured artists</p>
+                )}
               </div>
             </div>
           </div>
@@ -103,27 +119,31 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
           <h3 className="text-lg font-semibold mb-4">Tracks</h3>
           <ScrollArea className="h-48">
             <div className="space-y-2">
-              {releaseData.tracks.map((track, index) => (
-                <div
-                  key={index}
-                  className="p-2 rounded-lg bg-muted flex items-center justify-between"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {track.title}
-                      {track.version && ` (${track.version})`}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      ISRC: {track.isrc || "Will be assigned"}
-                    </p>
+              {releaseData.tracks?.length > 0 ? (
+                releaseData.tracks.map((track, index) => (
+                  <div
+                    key={index}
+                    className="p-2 rounded-lg bg-muted flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {track.title}
+                        {track.version && ` (${track.version})`}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        ISRC: {track.isrc || "Will be assigned"}
+                      </p>
+                    </div>
+                    {track.explicitContent !== "None" && (
+                      <Badge variant={track.explicitContent === "Explicit" ? "destructive" : "default"}>
+                        {track.explicitContent}
+                      </Badge>
+                    )}
                   </div>
-                  {track.explicitContent !== "None" && (
-                    <Badge variant={track.explicitContent === "Explicit" ? "destructive" : "default"}>
-                      {track.explicitContent}
-                    </Badge>
-                  )}
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No tracks added</p>
+              )}
             </div>
           </ScrollArea>
         </Card>
@@ -138,13 +158,13 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Selected Territories</p>
               <p className="font-medium">
-                {releaseData.selectedTerritories.length} territories selected
+                {releaseData.selectedTerritories?.length || 0} territories selected
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-2">Selected Services</p>
               <p className="font-medium">
-                {releaseData.selectedServices.length} services selected
+                {releaseData.selectedServices?.length || 0} services selected
               </p>
             </div>
           </div>
