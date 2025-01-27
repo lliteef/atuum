@@ -63,6 +63,93 @@ export type Database = {
         }
         Relationships: []
       }
+      releases: {
+        Row: {
+          artwork_url: string | null
+          catalog_number: string | null
+          copyright_line: string | null
+          created_at: string | null
+          created_by: string | null
+          featured_artists: string[] | null
+          format: string | null
+          genre: string | null
+          id: string
+          label: string | null
+          metadata_language: string | null
+          presave_date: string | null
+          presave_option: string | null
+          pricing: string | null
+          primary_artists: string[] | null
+          publisher_name: string | null
+          publishing_type: string | null
+          release_date: string | null
+          release_name: string
+          sales_start_date: string | null
+          selected_services: string[] | null
+          selected_territories: string[] | null
+          status: Database["public"]["Enums"]["release_status"] | null
+          subgenre: string | null
+          upc: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          artwork_url?: string | null
+          catalog_number?: string | null
+          copyright_line?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          featured_artists?: string[] | null
+          format?: string | null
+          genre?: string | null
+          id?: string
+          label?: string | null
+          metadata_language?: string | null
+          presave_date?: string | null
+          presave_option?: string | null
+          pricing?: string | null
+          primary_artists?: string[] | null
+          publisher_name?: string | null
+          publishing_type?: string | null
+          release_date?: string | null
+          release_name: string
+          sales_start_date?: string | null
+          selected_services?: string[] | null
+          selected_territories?: string[] | null
+          status?: Database["public"]["Enums"]["release_status"] | null
+          subgenre?: string | null
+          upc?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          artwork_url?: string | null
+          catalog_number?: string | null
+          copyright_line?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          featured_artists?: string[] | null
+          format?: string | null
+          genre?: string | null
+          id?: string
+          label?: string | null
+          metadata_language?: string | null
+          presave_date?: string | null
+          presave_option?: string | null
+          pricing?: string | null
+          primary_artists?: string[] | null
+          publisher_name?: string | null
+          publishing_type?: string | null
+          release_date?: string | null
+          release_name?: string
+          sales_start_date?: string | null
+          selected_services?: string[] | null
+          selected_territories?: string[] | null
+          status?: Database["public"]["Enums"]["release_status"] | null
+          subgenre?: string | null
+          upc?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -108,6 +195,7 @@ export type Database = {
     }
     Enums: {
       app_role: "regular_user" | "label_admin" | "moderator" | "system_admin"
+      release_status: "In Progress" | "Ready" | "Moderation" | "Sent to Stores"
     }
     CompositeTypes: {
       [_ in never]: never

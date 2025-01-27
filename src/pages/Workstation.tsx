@@ -3,53 +3,22 @@ import { Button } from "@/components/ui/button";
 import { CreateReleaseDialog } from "@/components/CreateReleaseDialog";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { WorkstationHeader } from "@/components/WorkstationHeader";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
 interface Release {
   id: string;
-  coverUrl: string;
-  releaseName: string;
-  artist: string;
-  upc: string;
+  artwork_url: string | null;
+  release_name: string;
+  primary_artists: string[];
+  upc: string | null;
   status: "Moderation" | "Ready" | "Sent to Stores" | "In Progress";
-  releaseDate: Date;
+  release_date: string | null;
 }
-
-// Mock data - replace with actual data fetching logic
-const mockReleases: Release[] = [
-  {
-    id: "1",
-    coverUrl: "/placeholder.svg",
-    releaseName: "Summer Vibes",
-    artist: "DJ Cool",
-    upc: "123456789012",
-    status: "Sent to Stores",
-    releaseDate: new Date(2024, 2, 15),
-  },
-  {
-    id: "2",
-    coverUrl: "/placeholder.svg",
-    releaseName: "Winter Dreams",
-    artist: "Frosty Band",
-    upc: "123456789013",
-    status: "Ready",
-    releaseDate: new Date(2024, 3, 1),
-  },
-  {
-    id: "3",
-    coverUrl: "/placeholder.svg",
-    releaseName: "Spring Collection",
-    artist: "Nature Sounds",
-    upc: "123456789014",
-    status: "Moderation",
-    releaseDate: new Date(2024, 4, 20),
-  },
-];
 
 export default function Workstation() {
   const [selectedStatus, setSelectedStatus] = useState<Release["status"] | "All">("All");
+  const [releases, setReleases] = useState<Release[]>([]);
   const [userInfo, setUserInfo] = useState<{
     email: string | undefined;
     id: string | undefined;
@@ -77,21 +46,39 @@ export default function Workstation() {
     getUserInfo();
   }, []);
 
+  useEffect(() => {
+    const fetchReleases = async () => {
+      const { data, error } = await supabase
+        .from('releases')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching releases:', error);
+        return;
+      }
+
+      setReleases(data || []);
+    };
+
+    fetchReleases();
+  }, []);
+
   const today = new Date();
 
-  const recentReleases = mockReleases
-    .filter(release => release.releaseDate <= today)
-    .sort((a, b) => b.releaseDate.getTime() - a.releaseDate.getTime())
+  const recentReleases = releases
+    .filter(release => release.release_date && new Date(release.release_date) <= today)
+    .sort((a, b) => new Date(b.release_date || 0).getTime() - new Date(a.release_date || 0).getTime())
     .slice(0, 3);
 
-  const upcomingReleases = mockReleases
-    .filter(release => release.releaseDate > today)
-    .sort((a, b) => a.releaseDate.getTime() - b.releaseDate.getTime())
+  const upcomingReleases = releases
+    .filter(release => release.release_date && new Date(release.release_date) > today)
+    .sort((a, b) => new Date(a.release_date || 0).getTime() - new Date(b.release_date || 0).getTime())
     .slice(0, 3);
 
   const filteredReleases = selectedStatus === "All" 
-    ? mockReleases 
-    : mockReleases.filter(release => release.status === selectedStatus);
+    ? releases 
+    : releases.filter(release => release.status === selectedStatus);
 
   const statuses: Release["status"][] = ["In Progress", "Ready", "Moderation", "Sent to Stores"];
 
@@ -128,9 +115,9 @@ export default function Workstation() {
                 <div className="space-y-2">
                   {recentReleases.map(release => (
                     <div key={release.id} className="flex justify-between text-sm">
-                      <span>{release.releaseName}</span>
+                      <span>{release.release_name}</span>
                       <span className="text-gray-400">
-                        {format(release.releaseDate, "MMM d, yyyy")}
+                        {release.release_date ? format(new Date(release.release_date), "MMM d, yyyy") : 'No date'}
                       </span>
                     </div>
                   ))}
@@ -150,9 +137,9 @@ export default function Workstation() {
                 <div className="space-y-2">
                   {upcomingReleases.map(release => (
                     <div key={release.id} className="flex justify-between text-sm">
-                      <span>{release.releaseName}</span>
+                      <span>{release.release_name}</span>
                       <span className="text-gray-400">
-                        {format(release.releaseDate, "MMM d, yyyy")}
+                        {release.release_date ? format(new Date(release.release_date), "MMM d, yyyy") : 'No date'}
                       </span>
                     </div>
                   ))}
@@ -194,15 +181,17 @@ export default function Workstation() {
                 className="flex items-center gap-4 p-4 bg-card rounded-lg hover:bg-card/90 transition-colors"
               >
                 <img
-                  src={release.coverUrl}
-                  alt={release.releaseName}
+                  src={release.artwork_url || "/placeholder.svg"}
+                  alt={release.release_name}
                   className="w-12 h-12 object-cover rounded"
                 />
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium truncate">{release.releaseName}</h3>
-                  <p className="text-sm text-gray-400 truncate">{release.artist}</p>
+                  <h3 className="font-medium truncate">{release.release_name}</h3>
+                  <p className="text-sm text-gray-400 truncate">
+                    {release.primary_artists?.join(', ') || 'No artists'}
+                  </p>
                 </div>
-                <div className="text-sm text-gray-400">{release.upc}</div>
+                <div className="text-sm text-gray-400">{release.upc || 'No UPC'}</div>
                 <div className="text-sm">
                   <span className={`px-2 py-1 rounded ${getStatusColor(release.status)}`}>
                     {release.status}

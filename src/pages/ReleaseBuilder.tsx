@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ReleaseBuilderSidebar } from "@/components/ReleaseBuilderSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { BasicInfo } from "@/components/release-builder/BasicInfo";
@@ -10,6 +10,7 @@ import { Publishing } from "@/components/release-builder/Publishing";
 import { Overview } from "@/components/release-builder/Overview";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
@@ -65,6 +66,7 @@ const STORAGE_KEY = 'releaseBuilderData';
 
 export default function ReleaseBuilder() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState<Section>(() => {
     const savedSection = sessionStorage.getItem('currentSection');
     return (savedSection as Section) || "basic-info";
@@ -144,7 +146,7 @@ export default function ReleaseBuilder() {
     });
   };
 
-  const handleSubmitRelease = () => {
+  const handleSubmitRelease = async () => {
     const errors = validateRelease();
     if (errors.length > 0) {
       toast({
@@ -155,18 +157,66 @@ export default function ReleaseBuilder() {
       return;
     }
 
-    // Handle release submission
-    console.log("Submitting release...", releaseData);
-    toast({
-      title: "Release submitted",
-      description: "Your release has been submitted successfully",
-    });
-    
-    // Clear session storage after successful submission
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem('currentSection');
-    sessionStorage.removeItem('basicInfoData');
-    sessionStorage.removeItem('territoriesAndServicesData');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to submit a release",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.from('releases').insert({
+        release_name: releaseData.releaseName,
+        upc: releaseData.upc,
+        catalog_number: releaseData.catalogNumber,
+        format: releaseData.format,
+        metadata_language: releaseData.metadataLanguage,
+        primary_artists: releaseData.primaryArtists,
+        featured_artists: releaseData.featuredArtists,
+        genre: releaseData.genre,
+        subgenre: releaseData.subgenre,
+        label: releaseData.label,
+        copyright_line: releaseData.copyrightLine,
+        artwork_url: releaseData.artworkUrl,
+        release_date: releaseData.releaseDate,
+        sales_start_date: releaseData.salesStartDate,
+        presave_option: releaseData.presaveOption,
+        presave_date: releaseData.presaveDate,
+        pricing: releaseData.pricing,
+        selected_territories: releaseData.selectedTerritories,
+        selected_services: releaseData.selectedServices,
+        publishing_type: releaseData.publishingType,
+        publisher_name: releaseData.publisherName,
+        created_by: user.id,
+        status: 'Moderation'
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Release submitted",
+        description: "Your release has been submitted successfully",
+      });
+      
+      // Clear session storage after successful submission
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem('currentSection');
+      sessionStorage.removeItem('basicInfoData');
+      sessionStorage.removeItem('territoriesAndServicesData');
+
+      // Navigate back to the workstation
+      navigate('/');
+    } catch (error) {
+      console.error('Error submitting release:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit release. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
