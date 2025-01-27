@@ -98,18 +98,22 @@ export default function ReleaseBuilder() {
     return initialData;
   });
 
-  // Save releaseData to session storage whenever it changes
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(releaseData));
-  }, [releaseData]);
+    // Update release data whenever basicInfoData changes
+    const basicInfoData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
+    setReleaseData(prev => ({
+      ...prev,
+      ...basicInfoData,
+    }));
+  }, [currentSection]); // Re-run when section changes to ensure we have latest data
 
   const validateRelease = () => {
     const errors: string[] = [];
+    const basicInfoData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
 
-    if (!releaseData.releaseName) errors.push("Release name is required");
-    if (!releaseData.metadataLanguage) errors.push("Metadata language is required");
-    if (!releaseData.primaryArtists?.length) errors.push("At least one primary artist is required");
-    if (!releaseData.genre) errors.push("Genre is required");
+    if (!basicInfoData.metadataLanguage) errors.push("Metadata language is required");
+    if (!basicInfoData.primaryArtists?.length) errors.push("At least one primary artist is required");
+    if (!basicInfoData.genre) errors.push("Genre is required");
     if (!releaseData.artworkUrl) errors.push("Artwork is required");
     if (!releaseData.tracks?.length) errors.push("At least one track is required");
     if (!releaseData.releaseDate) errors.push("Release date is required");
@@ -122,6 +126,8 @@ export default function ReleaseBuilder() {
 
   const handleSectionChange = (section: Section) => {
     setCurrentSection(section);
+    sessionStorage.setItem('currentSection', section);
+    
     if (section === "overview") {
       const errors = validateRelease();
       if (errors.length === 0) {
@@ -159,6 +165,8 @@ export default function ReleaseBuilder() {
     // Clear session storage after successful submission
     sessionStorage.removeItem(STORAGE_KEY);
     sessionStorage.removeItem('currentSection');
+    sessionStorage.removeItem('basicInfoData');
+    sessionStorage.removeItem('territoriesAndServicesData');
   };
 
   return (

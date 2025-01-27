@@ -13,6 +13,19 @@ interface OverviewProps {
 }
 
 export function Overview({ releaseData, errors, onNext }: OverviewProps) {
+  // Get the data from session storage to ensure we have the latest values
+  const basicInfoData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
+  
+  // Merge the session storage data with the props data
+  const mergedData = {
+    ...releaseData,
+    metadataLanguage: basicInfoData.metadataLanguage || releaseData.metadataLanguage,
+    primaryArtists: basicInfoData.primaryArtists || releaseData.primaryArtists || [],
+    featuredArtists: basicInfoData.featuredArtists || releaseData.featuredArtists || [],
+    genre: basicInfoData.genre || releaseData.genre,
+    subgenre: basicInfoData.subgenre || releaseData.subgenre,
+  };
+
   return (
     <div className="container max-w-4xl mx-auto p-6 space-y-6">
       <h2 className="text-2xl font-bold">Overview</h2>
@@ -36,10 +49,10 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
         <Card className="p-6">
           <div className="flex gap-6">
             {/* Artwork Preview */}
-            {releaseData.artworkUrl && (
+            {mergedData.artworkUrl && (
               <div className="w-32 h-32 flex-shrink-0">
                 <img
-                  src={releaseData.artworkUrl}
+                  src={mergedData.artworkUrl}
                   alt="Release artwork"
                   className="w-full h-full object-cover rounded-lg"
                 />
@@ -53,23 +66,29 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
               <div className="space-y-2">
                 <div>
                   <p className="text-sm text-muted-foreground">Release Name</p>
-                  <p className="font-medium">{releaseData.releaseName}</p>
+                  <p className="font-medium">{mergedData.releaseName}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">UPC</p>
-                  <p className="font-medium">{releaseData.upc || "Will be assigned"}</p>
+                  <p className="font-medium">{mergedData.upc || "Will be assigned"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Format</p>
-                  <p className="font-medium">{releaseData.format}</p>
+                  <p className="font-medium">{mergedData.format}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Genre</p>
-                  <p className="font-medium">{releaseData.genre || "Not specified"}</p>
+                  <p className="font-medium">{mergedData.genre || "Not specified"}</p>
                 </div>
+                {mergedData.subgenre && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Subgenre</p>
+                    <p className="font-medium">{mergedData.subgenre}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-muted-foreground">Metadata Language</p>
-                  <p className="font-medium">{releaseData.metadataLanguage || "Not specified"}</p>
+                  <p className="font-medium">{mergedData.metadataLanguage || "Not specified"}</p>
                 </div>
               </div>
             </div>
@@ -86,8 +105,8 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Primary Artists</p>
               <div className="flex flex-wrap gap-2">
-                {releaseData.primaryArtists?.length > 0 ? (
-                  releaseData.primaryArtists.map((artist) => (
+                {mergedData.primaryArtists?.length > 0 ? (
+                  mergedData.primaryArtists.map((artist) => (
                     <Badge key={artist} variant="secondary">
                       {artist}
                     </Badge>
@@ -100,8 +119,8 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Featured Artists</p>
               <div className="flex flex-wrap gap-2">
-                {releaseData.featuredArtists?.length > 0 ? (
-                  releaseData.featuredArtists.map((artist) => (
+                {mergedData.featuredArtists?.length > 0 ? (
+                  mergedData.featuredArtists.map((artist) => (
                     <Badge key={artist} variant="secondary">
                       {artist}
                     </Badge>
@@ -119,8 +138,8 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
           <h3 className="text-lg font-semibold mb-4">Tracks</h3>
           <ScrollArea className="h-48">
             <div className="space-y-2">
-              {releaseData.tracks?.length > 0 ? (
-                releaseData.tracks.map((track, index) => (
+              {mergedData.tracks?.length > 0 ? (
+                mergedData.tracks.map((track, index) => (
                   <div
                     key={index}
                     className="p-2 rounded-lg bg-muted flex items-center justify-between"
@@ -158,13 +177,13 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Selected Territories</p>
               <p className="font-medium">
-                {releaseData.selectedTerritories?.length || 0} territories selected
+                {mergedData.selectedTerritories?.length || 0} territories selected
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-2">Selected Services</p>
               <p className="font-medium">
-                {releaseData.selectedServices?.length || 0} services selected
+                {mergedData.selectedServices?.length || 0} services selected
               </p>
             </div>
           </div>
@@ -175,10 +194,10 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
           <h3 className="text-lg font-semibold mb-4">Publishing</h3>
           <div>
             <p className="text-sm text-muted-foreground">Publishing Type</p>
-            <p className="font-medium">{releaseData.publishingType || "Not specified"}</p>
-            {releaseData.publisherName && (
+            <p className="font-medium">{mergedData.publishingType || "Not specified"}</p>
+            {mergedData.publisherName && (
               <p className="text-sm text-muted-foreground mt-2">
-                Publisher: {releaseData.publisherName}
+                Publisher: {mergedData.publisherName}
               </p>
             )}
           </div>
