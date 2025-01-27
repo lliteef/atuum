@@ -150,6 +150,80 @@ export type Database = {
         }
         Relationships: []
       }
+      tracks: {
+        Row: {
+          additional_contributors: Json | null
+          audio_filename: string | null
+          audio_url: string | null
+          created_at: string
+          created_by: string | null
+          explicit_content: string | null
+          featured_artists: string[] | null
+          id: string
+          isrc: string | null
+          lyrics: string | null
+          lyrics_language: string | null
+          p_line: string | null
+          primary_artists: string[] | null
+          producers: string[] | null
+          release_id: string
+          remixers: string[] | null
+          songwriters: string[] | null
+          title: string
+          version: string | null
+        }
+        Insert: {
+          additional_contributors?: Json | null
+          audio_filename?: string | null
+          audio_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          explicit_content?: string | null
+          featured_artists?: string[] | null
+          id?: string
+          isrc?: string | null
+          lyrics?: string | null
+          lyrics_language?: string | null
+          p_line?: string | null
+          primary_artists?: string[] | null
+          producers?: string[] | null
+          release_id: string
+          remixers?: string[] | null
+          songwriters?: string[] | null
+          title: string
+          version?: string | null
+        }
+        Update: {
+          additional_contributors?: Json | null
+          audio_filename?: string | null
+          audio_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          explicit_content?: string | null
+          featured_artists?: string[] | null
+          id?: string
+          isrc?: string | null
+          lyrics?: string | null
+          lyrics_language?: string | null
+          p_line?: string | null
+          primary_artists?: string[] | null
+          producers?: string[] | null
+          release_id?: string
+          remixers?: string[] | null
+          songwriters?: string[] | null
+          title?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracks_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

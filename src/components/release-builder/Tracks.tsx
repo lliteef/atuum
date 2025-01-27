@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Upload, ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Track {
   id: string;
@@ -31,11 +32,8 @@ interface Track {
     currentName?: string;
   }[];
   pLine: string;
-  currentPrimaryArtist?: string;
-  currentFeaturedArtist?: string;
-  currentRemixer?: string;
-  currentSongwriter?: string;
-  currentProducer?: string;
+  audioUrl?: string;
+  audioFilename?: string;
 }
 
 const CONTRIBUTOR_ROLES = [
@@ -76,42 +74,81 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
   const selectedTrack = tracks.find(track => track.id === selectedTrackId);
   const selectedTrackIndex = tracks.findIndex(track => track.id === selectedTrackId);
 
-  const handleFileUpload = (files: FileList | null) => {
+  const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
 
-    Array.from(files).forEach(file => {
-      if (file.type !== "audio/wav") {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to upload tracks",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    for (const file of Array.from(files)) {
+      try {
+        const { url, filename, filePath } = await uploadAudioFile(file, user.id);
+        
+        const newTrack: Track = {
+          id: crypto.randomUUID(),
+          title: file.name.replace(".wav", ""),
+          autoAssignIsrc: true,
+          lyricsLanguage: "instrumental",
+          explicitContent: "None",
+          primaryArtists: [],
+          featuredArtists: [],
+          remixers: [],
+          songwriters: [],
+          producers: [],
+          additionalContributors: [],
+          pLine: `${new Date().getFullYear()} Records`,
+          audioUrl: url,
+          audioFilename: filename,
+        };
+
+        // Save track metadata to Supabase
+        const { error: dbError } = await supabase
+          .from('tracks')
+          .insert({
+            title: newTrack.title,
+            version: newTrack.version,
+            isrc: newTrack.isrc,
+            lyrics_language: newTrack.lyricsLanguage,
+            explicit_content: newTrack.explicitContent,
+            lyrics: newTrack.lyrics,
+            primary_artists: newTrack.primaryArtists,
+            featured_artists: newTrack.featuredArtists,
+            remixers: newTrack.remixers,
+            songwriters: newTrack.songwriters,
+            producers: newTrack.producers,
+            additional_contributors: newTrack.additionalContributors,
+            p_line: newTrack.pLine,
+            audio_url: url,
+            audio_filename: filename,
+            created_by: user.id
+          });
+
+        if (dbError) {
+          throw new Error(`Failed to save track metadata: ${dbError.message}`);
+        }
+
+        setTracks(prev => [...prev, newTrack]);
+        setSelectedTrackId(newTrack.id);
+
         toast({
-          title: "Invalid file format",
-          description: "Only WAV files are supported",
+          title: "Track uploaded",
+          description: "Track has been added successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: error.message,
           variant: "destructive",
         });
-        return;
       }
-
-      const newTrack: Track = {
-        id: crypto.randomUUID(),
-        title: file.name.replace(".wav", ""),
-        autoAssignIsrc: true,
-        lyricsLanguage: "instrumental",
-        explicitContent: "None",
-        primaryArtists: [],
-        featuredArtists: [],
-        remixers: [],
-        songwriters: [],
-        producers: [],
-        additionalContributors: [],
-        pLine: `${new Date().getFullYear()} Records`,
-      };
-
-      setTracks(prev => [...prev, newTrack]);
-      setSelectedTrackId(newTrack.id);
-
-      toast({
-        title: "Track uploaded",
-        description: "Track has been added successfully",
-      });
-    });
+    }
   };
 
   const updateTrack = (trackId: string, updates: Partial<Track>) => {
