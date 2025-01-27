@@ -170,7 +170,7 @@ export default function ReleaseBuilder() {
         return;
       }
 
-      // First create the release
+      // First create the release with snake_case property names
       const { data: release, error } = await supabase
         .from('releases')
         .insert({
@@ -203,7 +203,7 @@ export default function ReleaseBuilder() {
 
       if (error) throw error;
 
-      // Then update all tracks with the release_id
+      // Then update all tracks with the release_id and snake_case property names
       if (release && releaseData.tracks.length > 0) {
         const { error: tracksError } = await supabase
           .from('tracks')
