@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { X, ArrowRight } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 // Language options - this could be moved to a separate constants file
 const languages = [
@@ -76,6 +77,8 @@ interface BasicInfoProps {
 }
 
 export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInfoProps) {
+  const { toast } = useToast();
+  
   // Initialize state from sessionStorage or initialData
   const savedData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
 
@@ -146,6 +149,38 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
     onUpdateReleaseName,
   ]);
 
+  const handleNext = () => {
+    // Validate required fields
+    if (!metadataLanguage) {
+      toast({
+        title: "Required Field Missing",
+        description: "Please select a metadata language",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (primaryArtists.length === 0) {
+      toast({
+        title: "Required Field Missing",
+        description: "Please add at least one primary artist",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!genre) {
+      toast({
+        title: "Required Field Missing",
+        description: "Please select a genre",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onNext();
+  };
+
   const handlePrimaryArtistKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && currentPrimaryArtist.trim()) {
       setPrimaryArtists([...primaryArtists, currentPrimaryArtist.trim()]);
@@ -188,7 +223,7 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
         </div>
 
         <div>
-          <Label>Metadata Language</Label>
+          <Label>Metadata Language (required)</Label>
           <Select 
             required
             value={metadataLanguage}
@@ -224,7 +259,7 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
         <h3 className="text-lg font-semibold">Artists</h3>
 
         <div>
-          <Label>Primary Artist(s)</Label>
+          <Label>Primary Artist(s) (required)</Label>
           <Input
             value={currentPrimaryArtist}
             onChange={(e) => setCurrentPrimaryArtist(e.target.value)}
@@ -279,7 +314,7 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
         <h3 className="text-lg font-semibold">Release Details</h3>
 
         <div>
-          <Label>Genre</Label>
+          <Label>Genre (required)</Label>
           <Select 
             required
             value={genre}
@@ -372,7 +407,7 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
 
         <Button 
           className="w-full" 
-          onClick={onNext}
+          onClick={handleNext}
         >
           Save and Continue
           <ArrowRight className="ml-2 h-4 w-4" />
