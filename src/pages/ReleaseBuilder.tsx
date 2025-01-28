@@ -5,6 +5,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Music, Upload } from "lucide-react";
 
+export interface ReleaseData {
+  releaseName: string;
+  upc?: string;
+  catalogNumber: string;
+  format: string;
+  metadataLanguage?: string;
+  primaryArtists?: string[];
+  featuredArtists?: string[];
+  genre?: string;
+  subgenre?: string;
+  label?: string;
+  copyrightLine?: string;
+  artworkUrl?: string;
+  tracks?: Array<{
+    title: string;
+    version?: string;
+    isrc?: string;
+    explicitContent?: "None" | "Explicit" | "Clean";
+  }>;
+  releaseDate?: Date;
+  salesStartDate?: Date;
+  presaveOption?: string;
+  presaveDate?: Date;
+  pricing?: string;
+  selectedTerritories?: string[];
+  selectedServices?: string[];
+  publishingType?: string;
+  publisherName?: string;
+  status?: "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
+}
+
 export default function ReleaseBuilder() {
   useEffect(() => {
     document.title = "Release Builder | IMG";
