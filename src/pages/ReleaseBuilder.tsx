@@ -11,6 +11,7 @@ import { Overview } from "@/components/release-builder/Overview";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 type Section = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
@@ -170,7 +171,7 @@ export default function ReleaseBuilder() {
         return;
       }
 
-      // First create the release with snake_case property names
+      // First create the release with properly typed data
       const { data: release, error } = await supabase
         .from('releases')
         .insert({
@@ -197,13 +198,13 @@ export default function ReleaseBuilder() {
           subgenre: releaseData.subgenre?.toLowerCase(),
           upc: releaseData.upc,
           created_by: user.id
-        })
+        } as Database['public']['Tables']['releases']['Insert'])
         .select()
         .single();
 
       if (error) throw error;
 
-      // Then update all tracks with the release_id and snake_case property names
+      // Then update all tracks with the release_id
       if (release && releaseData.tracks.length > 0) {
         const { error: tracksError } = await supabase
           .from('tracks')
@@ -226,7 +227,7 @@ export default function ReleaseBuilder() {
               audio_filename: track.audioFilename,
               release_id: release.id,
               created_by: user.id
-            }))
+            } as Database['public']['Tables']['tracks']['Insert']))
           );
 
         if (tracksError) throw tracksError;
