@@ -42,6 +42,12 @@ export default function Workstation() {
 
   const statusOptions: (ReleaseStatus | "All")[] = ["All", "In Progress", "Ready", "Moderation", "Sent to Stores"];
 
+  const formatArtists = (primaryArtists: string[] = [], featuredArtists: string[] = []) => {
+    const primary = primaryArtists.join(", ");
+    const featured = featuredArtists.length > 0 ? ` feat. ${featuredArtists.join(", ")}` : "";
+    return `${primary}${featured}`;
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -143,7 +149,7 @@ export default function Workstation() {
               <div>
                 <h3 className="font-medium">{release.release_name}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {release.label || 'No Label'}
+                  {formatArtists(release.primary_artists, release.featured_artists)}
                 </p>
               </div>
             </div>
