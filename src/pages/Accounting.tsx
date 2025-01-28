@@ -1,7 +1,12 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, CreditCard, Wallet } from "lucide-react";
 
 export default function Accounting() {
+  useEffect(() => {
+    document.title = "Accounting | IMG";
+  }, []);
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold">Accounting</h1>

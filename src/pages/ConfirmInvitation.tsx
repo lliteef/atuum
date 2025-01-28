@@ -8,6 +8,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const ConfirmInvitation = () => {
+  useEffect(() => {
+    document.title = "Confirm Invitation | IMG";
+  }, []);
+
   const [searchParams] = useSearchParams();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

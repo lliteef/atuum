@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,10 @@ import { useQuery } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 
 export default function Settings() {
+  useEffect(() => {
+    document.title = "Settings | IMG";
+  }, []);
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");

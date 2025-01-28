@@ -1,7 +1,12 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart2, TrendingUp, Music2, Users } from "lucide-react";
 
 export default function Insights() {
+  useEffect(() => {
+    document.title = "Insights | IMG";
+  }, []);
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold">Insights</h1>
