@@ -269,7 +269,12 @@ export type Database = {
     }
     Enums: {
       app_role: "regular_user" | "label_admin" | "moderator" | "system_admin"
-      release_status: "In Progress" | "Ready" | "Moderation" | "Sent to Stores"
+      release_status:
+        | "In Progress"
+        | "Ready"
+        | "Moderation"
+        | "Sent to Stores"
+        | "Taken Down"
     }
     CompositeTypes: {
       [_ in never]: never
