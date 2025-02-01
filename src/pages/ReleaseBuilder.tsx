@@ -13,12 +13,44 @@ import { Overview } from "@/components/release-builder/Overview";
 import { useToast } from "@/components/ui/use-toast";
 
 type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
+type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores" | "Taken Down";
+
+export interface ReleaseData {
+  id?: string;
+  release_name: string;
+  upc?: string;
+  catalog_number?: string;
+  format?: string;
+  metadata_language?: string;
+  primary_artists?: string[];
+  featured_artists?: string[];
+  genre?: string;
+  subgenre?: string;
+  label?: string;
+  copyright_line?: string;
+  artwork_url?: string;
+  release_date?: string;
+  sales_start_date?: string;
+  presave_option?: string;
+  presave_date?: string;
+  pricing?: string;
+  selected_territories?: string[];
+  selected_services?: string[];
+  publishing_type?: string;
+  publisher_name?: string;
+  status?: ReleaseStatus;
+  tracks?: any[];
+}
 
 export default function ReleaseBuilder() {
   const { id } = useParams();
   const { toast } = useToast();
   const [currentSection, setCurrentSection] = useState<ReleaseSection>("basic-info");
   const [releaseName, setReleaseName] = useState<string>("");
+  const [territoriesAndServicesData, setTerritoriesAndServicesData] = useState<{
+    selectedTerritories: string[];
+    selectedServices: string[];
+  }>({ selectedTerritories: [], selectedServices: [] });
 
   const { data: release, isLoading, error } = useQuery({
     queryKey: ['release', id],
@@ -112,7 +144,12 @@ export default function ReleaseBuilder() {
       case "scheduling":
         return <Scheduling onNext={() => setCurrentSection("territories")} />;
       case "territories":
-        return <TerritoriesAndServices onNext={() => setCurrentSection("publishing")} />;
+        return (
+          <TerritoriesAndServices 
+            onNext={() => setCurrentSection("publishing")} 
+            onUpdateData={setTerritoriesAndServicesData}
+          />
+        );
       case "publishing":
         return <Publishing onNext={() => setCurrentSection("overview")} />;
       case "overview":
@@ -121,6 +158,8 @@ export default function ReleaseBuilder() {
             releaseData={{
               ...release,
               releaseName: releaseName,
+              selected_territories: territoriesAndServicesData.selectedTerritories,
+              selected_services: territoriesAndServicesData.selectedServices,
             }}
             errors={[]}
             onNext={() => {
