@@ -130,10 +130,10 @@ export default function Workstation() {
 
   const statusOptions: (ReleaseStatus | "All")[] = ["All", "In Progress", "Ready", "Moderation", "Sent to Stores", "Taken Down"];
 
-  const formatArtists = (primaryArtists: string[] = [], featuredArtists: string[] = []) => {
-    const primary = primaryArtists.join(", ");
-    const featured = featuredArtists.length > 0 ? ` feat. ${featuredArtists.join(", ")}` : "";
-    return `${primary}${featured}`;
+  const formatArtists = (primaryArtists?: string[] | null, featuredArtists?: string[] | null) => {
+    const primary = primaryArtists?.join(", ") || "";
+    const featured = featuredArtists?.length ? ` feat. ${featuredArtists.join(", ")}` : "";
+    return primary || featured ? `${primary}${featured}` : "No artists";
   };
 
   const getStatusColor = (status: ReleaseStatus) => {
