@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Upload, X, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ArtworkProps {
   initialData?: {
@@ -19,6 +21,7 @@ export function Artwork({ initialData, onArtworkUpdate, onNext }: ArtworkProps) 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
+  const { id: releaseId } = useParams();
 
   const validateImage = (file: File): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -56,22 +59,46 @@ export function Artwork({ initialData, onArtworkUpdate, onNext }: ArtworkProps) 
       return;
     }
 
-    // Simulate upload progress
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        const url = URL.createObjectURL(file);
-        setArtworkUrl(url);
-        onArtworkUpdate?.(url);
-        toast({
-          title: "Upload complete",
-          description: "Artwork has been successfully uploaded.",
-        });
-      }
-    }, 200);
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `artwork/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('audio')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('audio')
+        .getPublicUrl(filePath);
+
+      // Update release record with artwork URL
+      const { error: updateError } = await supabase
+        .from('releases')
+        .update({ artwork_url: publicUrl })
+        .eq('id', releaseId);
+
+      if (updateError) throw updateError;
+
+      setArtworkUrl(publicUrl);
+      onArtworkUpdate?.(publicUrl);
+
+      toast({
+        title: "Upload complete",
+        description: "Artwork has been successfully uploaded.",
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -90,9 +117,30 @@ export function Artwork({ initialData, onArtworkUpdate, onNext }: ArtworkProps) 
     }
   };
 
-  const removeArtwork = () => {
-    setArtworkUrl("");
-    setUploadProgress(0);
+  const removeArtwork = async () => {
+    try {
+      const { error } = await supabase
+        .from('releases')
+        .update({ artwork_url: null })
+        .eq('id', releaseId);
+
+      if (error) throw error;
+
+      setArtworkUrl("");
+      setUploadProgress(0);
+      
+      toast({
+        title: "Artwork removed",
+        description: "Artwork has been successfully removed.",
+      });
+    } catch (error) {
+      console.error('Error removing artwork:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove artwork",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

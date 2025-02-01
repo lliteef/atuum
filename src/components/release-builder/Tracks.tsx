@@ -69,11 +69,25 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
 
     for (const file of Array.from(files)) {
       try {
-        const { url, filename } = await uploadAudioFile(file, user.id);
-        
+        // Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `tracks/${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('audio')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('audio')
+          .getPublicUrl(filePath);
+
         const newTrack: Track = {
           id: crypto.randomUUID(),
-          title: file.name.replace(".wav", ""),
+          title: file.name.replace(/\.[^/.]+$/, ""),
           autoAssignIsrc: true,
           lyricsLanguage: "instrumental",
           explicitContent: "None",
@@ -84,14 +98,15 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
           producers: [],
           additionalContributors: [],
           pLine: `${new Date().getFullYear()} Records`,
-          audioUrl: url,
-          audioFilename: filename,
+          audioUrl: publicUrl,
+          audioFilename: fileName,
         };
 
         // Save track metadata to Supabase
         const { error: dbError } = await supabase
           .from('tracks')
           .insert({
+            release_id: initialData?.releaseId,
             title: newTrack.title,
             version: newTrack.version,
             isrc: newTrack.isrc,
@@ -103,17 +118,14 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
             remixers: newTrack.remixers,
             songwriters: newTrack.songwriters,
             producers: newTrack.producers,
-            additional_contributors: newTrack.additionalContributors as Json,
+            additional_contributors: newTrack.additionalContributors,
             p_line: newTrack.pLine,
-            audio_url: url,
-            audio_filename: filename,
+            audio_url: publicUrl,
+            audio_filename: fileName,
             created_by: user.id,
-            release_id: initialData?.releaseId // This needs to be passed from the parent
           });
 
-        if (dbError) {
-          throw new Error(`Failed to save track metadata: ${dbError.message}`);
-        }
+        if (dbError) throw dbError;
 
         setTracks(prev => [...prev, newTrack]);
         setSelectedTrackId(newTrack.id);
@@ -123,6 +135,7 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
           description: "Track has been added successfully",
         });
       } catch (error) {
+        console.error('Upload error:', error);
         toast({
           title: "Upload failed",
           description: error.message,
