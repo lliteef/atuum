@@ -13,7 +13,7 @@ import { Overview } from "@/components/release-builder/Overview";
 import { useToast } from "@/components/ui/use-toast";
 
 type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
-type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores" | "Taken Down";
+type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
 
 export interface ReleaseData {
   id?: string;
@@ -157,7 +157,7 @@ export default function ReleaseBuilder() {
           <Overview
             releaseData={{
               ...release,
-              releaseName: releaseName,
+              release_name: releaseName,
               selected_territories: territoriesAndServicesData.selectedTerritories,
               selected_services: territoriesAndServicesData.selectedServices,
             }}

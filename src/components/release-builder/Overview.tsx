@@ -19,9 +19,9 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
   // Merge the session storage data with the props data
   const mergedData = {
     ...releaseData,
-    metadataLanguage: basicInfoData.metadataLanguage || releaseData.metadataLanguage,
-    primaryArtists: basicInfoData.primaryArtists || releaseData.primaryArtists || [],
-    featuredArtists: basicInfoData.featuredArtists || releaseData.featuredArtists || [],
+    metadata_language: basicInfoData.metadata_language || releaseData.metadata_language,
+    primary_artists: basicInfoData.primary_artists || releaseData.primary_artists || [],
+    featured_artists: basicInfoData.featured_artists || releaseData.featured_artists || [],
     genre: basicInfoData.genre || releaseData.genre,
     subgenre: basicInfoData.subgenre || releaseData.subgenre,
   };
@@ -49,10 +49,10 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
         <Card className="p-6">
           <div className="flex gap-6">
             {/* Artwork Preview */}
-            {mergedData.artworkUrl && (
+            {mergedData.artwork_url && (
               <div className="w-32 h-32 flex-shrink-0">
                 <img
-                  src={mergedData.artworkUrl}
+                  src={mergedData.artwork_url}
                   alt="Release artwork"
                   className="w-full h-full object-cover rounded-lg"
                 />
@@ -66,7 +66,7 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
               <div className="space-y-2">
                 <div>
                   <p className="text-sm text-muted-foreground">Release Name</p>
-                  <p className="font-medium">{mergedData.releaseName}</p>
+                  <p className="font-medium">{mergedData.release_name}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">UPC</p>
@@ -88,7 +88,7 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
                 )}
                 <div>
                   <p className="text-sm text-muted-foreground">Metadata Language</p>
-                  <p className="font-medium">{mergedData.metadataLanguage || "Not specified"}</p>
+                  <p className="font-medium">{mergedData.metadata_language || "Not specified"}</p>
                 </div>
               </div>
             </div>
@@ -105,8 +105,8 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Primary Artists</p>
               <div className="flex flex-wrap gap-2">
-                {mergedData.primaryArtists?.length > 0 ? (
-                  mergedData.primaryArtists.map((artist) => (
+                {mergedData.primary_artists?.length > 0 ? (
+                  mergedData.primary_artists.map((artist) => (
                     <Badge key={artist} variant="secondary">
                       {artist}
                     </Badge>
@@ -119,8 +119,8 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Featured Artists</p>
               <div className="flex flex-wrap gap-2">
-                {mergedData.featuredArtists?.length > 0 ? (
-                  mergedData.featuredArtists.map((artist) => (
+                {mergedData.featured_artists?.length > 0 ? (
+                  mergedData.featured_artists.map((artist) => (
                     <Badge key={artist} variant="secondary">
                       {artist}
                     </Badge>
@@ -177,13 +177,13 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-2">Selected Territories</p>
               <p className="font-medium">
-                {mergedData.selectedTerritories?.length || 0} territories selected
+                {mergedData.selected_territories?.length || 0} territories selected
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground mb-2">Selected Services</p>
               <p className="font-medium">
-                {mergedData.selectedServices?.length || 0} services selected
+                {mergedData.selected_services?.length || 0} services selected
               </p>
             </div>
           </div>
@@ -194,10 +194,10 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
           <h3 className="text-lg font-semibold mb-4">Publishing</h3>
           <div>
             <p className="text-sm text-muted-foreground">Publishing Type</p>
-            <p className="font-medium">{mergedData.publishingType || "Not specified"}</p>
-            {mergedData.publisherName && (
+            <p className="font-medium">{mergedData.publishing_type || "Not specified"}</p>
+            {mergedData.publisher_name && (
               <p className="text-sm text-muted-foreground mt-2">
-                Publisher: {mergedData.publisherName}
+                Publisher: {mergedData.publisher_name}
               </p>
             )}
           </div>
