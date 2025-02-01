@@ -63,7 +63,7 @@ export default function ReleaseBuilder() {
         .from('releases')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Supabase error:', error);
