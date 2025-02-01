@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Calendar, Globe, Music2, Users2, AlertTriangle, Languages } from "lucide-react";
 import { ReleaseData } from "@/pages/ReleaseBuilder";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface OverviewProps {
   releaseData: ReleaseData;
@@ -13,6 +16,9 @@ interface OverviewProps {
 }
 
 export function Overview({ releaseData, errors, onNext }: OverviewProps) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
   // Get the data from session storage to ensure we have the latest values
   const basicInfoData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
   
@@ -24,6 +30,32 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
     featured_artists: basicInfoData.featured_artists || releaseData.featured_artists || [],
     genre: basicInfoData.genre || releaseData.genre,
     subgenre: basicInfoData.subgenre || releaseData.subgenre,
+  };
+
+  const handleSubmitRelease = async () => {
+    try {
+      const { error } = await supabase
+        .from('releases')
+        .update({ status: 'Moderation' })
+        .eq('id', releaseData.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Release has been submitted for moderation",
+      });
+
+      // Navigate back to the catalog
+      navigate('/workstation');
+    } catch (error) {
+      console.error('Error submitting release:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit release",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -206,7 +238,7 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
 
       <div className="flex justify-end pt-6">
         <Button 
-          onClick={onNext}
+          onClick={handleSubmitRelease}
           disabled={errors.length > 0}
         >
           Submit Release
