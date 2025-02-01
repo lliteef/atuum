@@ -12,6 +12,7 @@ import { Publishing } from "@/components/release-builder/Publishing";
 import { Overview } from "@/components/release-builder/Overview";
 import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
@@ -177,17 +178,19 @@ export default function ReleaseBuilder() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <ReleaseBuilderSidebar
-        releaseName={releaseName}
-        upc={release?.upc}
-        status={release?.status || "In Progress"}
-        currentSection={currentSection}
-        onSectionChange={setCurrentSection}
-      />
-      <main className="flex-1 overflow-y-auto">
-        {renderSection()}
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        <ReleaseBuilderSidebar
+          releaseName={releaseName}
+          upc={release?.upc}
+          status={release?.status || "In Progress"}
+          currentSection={currentSection}
+          onSectionChange={setCurrentSection}
+        />
+        <main className="flex-1 overflow-y-auto">
+          {renderSection()}
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
