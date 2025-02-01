@@ -1,9 +1,13 @@
 import { useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Music, Upload } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface ReleaseData {
   releaseName: string;
@@ -33,17 +37,46 @@ export interface ReleaseData {
   selectedServices?: string[];
   publishingType?: string;
   publisherName?: string;
-  status?: "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
+  status?: "In Progress" | "Ready" | "Moderation" | "Sent to Stores" | "Taken Down";
 }
 
 export default function ReleaseBuilder() {
+  const { id } = useParams();
+  const { toast } = useToast();
+
+  const { data: release, isLoading } = useQuery({
+    queryKey: ['release', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('releases')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load release data",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      return data;
+    },
+  });
+
   useEffect(() => {
-    document.title = "Release Builder | IMG";
-  }, []);
+    document.title = `${release?.release_name || 'Release Builder'} | IMG`;
+  }, [release?.release_name]);
+
+  if (isLoading) {
+    return <div className="p-6">Loading...</div>;
+  }
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Release Builder</h1>
+      <h1 className="text-3xl font-bold">Release Builder - {release?.release_name}</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-card">
@@ -56,17 +89,28 @@ export default function ReleaseBuilder() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">Release Title</Label>
-              <Input id="title" placeholder="Enter release title" />
+              <Input 
+                id="title" 
+                value={release?.release_name || ''} 
+                disabled
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="artist">Primary Artist</Label>
-              <Input id="artist" placeholder="Enter primary artist name" />
+              <Input 
+                id="artist" 
+                value={release?.primary_artists?.join(', ') || ''} 
+                disabled
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="genre">Genre</Label>
-              <Input id="genre" placeholder="Enter primary genre" />
+              <Input 
+                id="genre" 
+                value={release?.genre || ''} 
+                disabled
+              />
             </div>
-            <Button className="w-full">Save Release Info</Button>
           </CardContent>
         </Card>
         
