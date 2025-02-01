@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Disc, Music, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type ReleaseType = "Digital" | "Music Video" | "Physical";
 type ReleaseFormat = "Album/Full Length" | "EP" | "Single";
 
 export function CreateReleaseDialog() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [releaseType, setReleaseType] = useState<ReleaseType | null>(null);
   const [format, setFormat] = useState<ReleaseFormat | null>(null);
   const [releaseName, setReleaseName] = useState("");
@@ -18,22 +21,48 @@ export function CreateReleaseDialog() {
   const [releaseVersion, setReleaseVersion] = useState("");
   const [hasUPC, setHasUPC] = useState<boolean>(false);
   const [upcNumber, setUpcNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateRelease = () => {
+  const handleCreateRelease = async () => {
     if (!releaseType || !format || !releaseName || !releaseNo) {
-      return; // Don't proceed if required fields are missing
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
     }
 
-    navigate("/release-builder", {
-      state: {
-        releaseName,
-        upc: hasUPC ? upcNumber : undefined,
-        releaseType,
-        format,
-        releaseNo,
-        releaseVersion,
-      },
-    });
+    setIsLoading(true);
+
+    try {
+      const { data: release, error } = await supabase
+        .from('releases')
+        .insert({
+          release_name: releaseName,
+          upc: hasUPC ? upcNumber : null,
+          catalog_number: releaseNo,
+          format,
+          status: "In Progress",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (!release) throw new Error("No release data returned");
+
+      navigate(`/release-builder/${release.id}`);
+    } catch (error) {
+      console.error('Error creating release:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create release",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -161,9 +190,9 @@ export function CreateReleaseDialog() {
           <Button
             className="w-full"
             onClick={handleCreateRelease}
-            disabled={!releaseType || !format || !releaseName || !releaseNo}
+            disabled={!releaseType || !format || !releaseName || !releaseNo || isLoading}
           >
-            Create Release
+            {isLoading ? "Creating..." : "Create Release"}
           </Button>
         </div>
       </DialogContent>
