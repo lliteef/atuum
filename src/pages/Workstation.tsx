@@ -267,16 +267,33 @@ export default function Workstation() {
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="relative"
+                  >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleEdit(release)}>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-[200px] bg-popover"
+                >
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleEdit(release);
+                    }}
+                  >
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => handleTakedownClick(release)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleTakedownClick(release);
+                    }}
                     className="text-red-500 focus:text-red-500"
                   >
                     Takedown
