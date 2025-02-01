@@ -7,8 +7,9 @@ import {
   SidebarGroupLabel,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
+import { Database } from "@/integrations/supabase/types";
 
-type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
+type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 
 interface ReleaseBuilderSidebarProps {
@@ -29,6 +30,8 @@ const getStatusColor = (status: ReleaseStatus) => {
       return "text-blue-500";
     case "Sent to Stores":
       return "text-purple-500";
+    case "Taken Down":
+      return "text-red-500";
     default:
       return "text-gray-500";
   }
