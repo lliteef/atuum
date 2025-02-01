@@ -11,9 +11,10 @@ import { TerritoriesAndServices } from "@/components/release-builder/Territories
 import { Publishing } from "@/components/release-builder/Publishing";
 import { Overview } from "@/components/release-builder/Overview";
 import { useToast } from "@/components/ui/use-toast";
+import { Database } from "@/integrations/supabase/types";
 
 type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
-type ReleaseStatus = "In Progress" | "Ready" | "Moderation" | "Sent to Stores";
+type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 
 export interface ReleaseData {
   id?: string;
@@ -146,7 +147,7 @@ export default function ReleaseBuilder() {
       case "territories":
         return (
           <TerritoriesAndServices 
-            onNext={() => setCurrentSection("publishing")} 
+            onNext={() => setCurrentSection("publishing")}
             onUpdateData={setTerritoriesAndServicesData}
           />
         );
@@ -157,7 +158,6 @@ export default function ReleaseBuilder() {
           <Overview
             releaseData={{
               ...release,
-              release_name: releaseName,
               selected_territories: territoriesAndServicesData.selectedTerritories,
               selected_services: territoriesAndServicesData.selectedServices,
             }}
