@@ -36,6 +36,13 @@ export function CreateReleaseDialog() {
     setIsLoading(true);
 
     try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("No authenticated user");
+      }
+
       const { data: release, error } = await supabase
         .from('releases')
         .insert({
@@ -44,6 +51,7 @@ export function CreateReleaseDialog() {
           catalog_number: releaseNo,
           format,
           status: "In Progress",
+          created_by: user.id, // Add the user ID here
         })
         .select()
         .single();
