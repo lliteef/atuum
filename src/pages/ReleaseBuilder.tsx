@@ -62,9 +62,10 @@ export default function ReleaseBuilder() {
         .from('releases')
         .select('*')
         .eq('id', id)
-        .maybeSingle();
+        .single();
 
       if (error) {
+        console.error('Supabase error:', error);
         toast({
           title: "Error",
           description: "Failed to load release data",
