@@ -1,13 +1,36 @@
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Calendar, Globe, Music2, Users2, AlertTriangle, Languages } from "lucide-react";
-import { ReleaseData } from "@/pages/ReleaseBuilder";
+import { Calendar, Globe, Music2, Users2, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface OverviewProps {
+  releaseData: {
+    id?: string;
+    release_name?: string;
+    upc?: string;
+    artwork_url?: string;
+    format?: string;
+    genre?: string;
+    subgenre?: string;
+    metadata_language?: string;
+    primary_artists?: string[];
+    featured_artists?: string[];
+    tracks?: any[];
+    selected_territories?: string[];
+    selected_services?: string[];
+    publishing_type?: string;
+    publisher_name?: string;
+  };
+  errors: string[];
+  onNext: () => void;
+}
 
 export function Overview({ releaseData, errors, onNext }: OverviewProps) {
   const navigate = useNavigate();
