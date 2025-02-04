@@ -51,7 +51,7 @@ export function CreateReleaseDialog() {
           catalog_number: releaseNo,
           format,
           status: "In Progress",
-          created_by: user.id, // Add the user ID here
+          created_by: user.id,
         })
         .select()
         .single();
@@ -59,6 +59,11 @@ export function CreateReleaseDialog() {
       if (error) throw error;
 
       if (!release) throw new Error("No release data returned");
+
+      toast({
+        title: "Success",
+        description: "Release created successfully",
+      });
 
       navigate(`/release-builder/${release.id}`);
     } catch (error) {
