@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,6 +12,8 @@ import Insights from "@/pages/Insights";
 import Accounting from "@/pages/Accounting";
 import Fansifter from "@/pages/Fansifter";
 import ConfirmInvitation from "@/pages/ConfirmInvitation";
+import { DashboardSidebar } from "@/components/DashboardSidebar";
+import { WorkstationHeader } from "@/components/WorkstationHeader";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -22,6 +24,30 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Layout wrapper component
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  const isReleaseBuilder = location.pathname.includes('/release-builder');
+  const isAuth = location.pathname === '/auth';
+  const isConfirmInvitation = location.pathname === '/confirm-invitation';
+
+  if (isReleaseBuilder || isAuth || isConfirmInvitation) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="min-h-screen flex">
+      <DashboardSidebar />
+      <div className="flex-1 flex flex-col">
+        <WorkstationHeader />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -57,7 +83,9 @@ function App() {
               path="/"
               element={
                 session ? (
-                  <Workstation />
+                  <AppLayout>
+                    <Workstation />
+                  </AppLayout>
                 ) : (
                   <Navigate to="/auth" replace />
                 )
@@ -91,7 +119,9 @@ function App() {
               path="/settings"
               element={
                 session ? (
-                  <Settings />
+                  <AppLayout>
+                    <Settings />
+                  </AppLayout>
                 ) : (
                   <Navigate to="/auth" replace />
                 )
@@ -101,7 +131,9 @@ function App() {
               path="/insights"
               element={
                 session ? (
-                  <Insights />
+                  <AppLayout>
+                    <Insights />
+                  </AppLayout>
                 ) : (
                   <Navigate to="/auth" replace />
                 )
@@ -111,7 +143,9 @@ function App() {
               path="/accounting"
               element={
                 session ? (
-                  <Accounting />
+                  <AppLayout>
+                    <Accounting />
+                  </AppLayout>
                 ) : (
                   <Navigate to="/auth" replace />
                 )
@@ -121,7 +155,9 @@ function App() {
               path="/fansifter"
               element={
                 session ? (
-                  <Fansifter />
+                  <AppLayout>
+                    <Fansifter />
+                  </AppLayout>
                 ) : (
                   <Navigate to="/auth" replace />
                 )
