@@ -14,6 +14,7 @@ import Fansifter from "@/pages/Fansifter";
 import ConfirmInvitation from "@/pages/ConfirmInvitation";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { WorkstationHeader } from "@/components/WorkstationHeader";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -37,7 +38,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex w-full">
       <DashboardSidebar />
       <div className="flex-1 flex flex-col">
         <WorkstationHeader />
@@ -78,94 +79,96 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ThemeProvider defaultTheme="dark">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                session ? (
-                  <AppLayout>
-                    <Workstation />
-                  </AppLayout>
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
-              }
-            />
-            <Route
-              path="/auth"
-              element={
-                !session ? (
-                  <Auth />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route
-              path="/workstation"
-              element={<Navigate to="/" replace />}
-            />
-            <Route
-              path="/release-builder/:id"
-              element={
-                session ? (
-                  <ReleaseBuilder />
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                session ? (
-                  <AppLayout>
-                    <Settings />
-                  </AppLayout>
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
-              }
-            />
-            <Route
-              path="/insights"
-              element={
-                session ? (
-                  <AppLayout>
-                    <Insights />
-                  </AppLayout>
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
-              }
-            />
-            <Route
-              path="/accounting"
-              element={
-                session ? (
-                  <AppLayout>
-                    <Accounting />
-                  </AppLayout>
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
-              }
-            />
-            <Route
-              path="/fansifter"
-              element={
-                session ? (
-                  <AppLayout>
-                    <Fansifter />
-                  </AppLayout>
-                ) : (
-                  <Navigate to="/auth" replace />
-                )
-              }
-            />
-            <Route path="/confirm-invitation" element={<ConfirmInvitation />} />
-          </Routes>
-          <Toaster />
+          <SidebarProvider>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <Workstation />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/auth"
+                element={
+                  !session ? (
+                    <Auth />
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route
+                path="/workstation"
+                element={<Navigate to="/" replace />}
+              />
+              <Route
+                path="/release-builder/:id"
+                element={
+                  session ? (
+                    <ReleaseBuilder />
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <Settings />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/insights"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <Insights />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/accounting"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <Accounting />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/fansifter"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <Fansifter />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route path="/confirm-invitation" element={<ConfirmInvitation />} />
+            </Routes>
+            <Toaster />
+          </SidebarProvider>
         </ThemeProvider>
       </BrowserRouter>
     </QueryClientProvider>
