@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { X, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 // Language options - this could be moved to a separate constants file
 const languages = [
@@ -78,6 +80,7 @@ interface BasicInfoProps {
 
 export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInfoProps) {
   const { toast } = useToast();
+  const { id: releaseId } = useParams();
   
   // Initialize state from sessionStorage or initialData
   const savedData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
@@ -114,7 +117,7 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
     savedData.releaseName || initialData.releaseName || ""
   );
 
-  // Save to session storage whenever any value changes
+  // Save to session storage and update database whenever any value changes
   useEffect(() => {
     const dataToSave = {
       primaryArtists,
@@ -126,13 +129,40 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
       subgenre,
       copyrightLine,
       releaseName,
-      upc: initialData.upc,
-      catalogNumber: initialData.catalogNumber,
-      format: initialData.format,
     };
     
     sessionStorage.setItem('basicInfoData', JSON.stringify(dataToSave));
     onUpdateReleaseName(releaseName);
+
+    // Update the release in the database
+    if (releaseId) {
+      const updateRelease = async () => {
+        const { error } = await supabase
+          .from('releases')
+          .update({
+            release_name: releaseName,
+            metadata_language: metadataLanguage,
+            primary_artists: primaryArtists,
+            featured_artists: featuredArtists,
+            genre,
+            subgenre,
+            label: selectedLabel,
+            copyright_line: copyrightLine,
+          })
+          .eq('id', releaseId);
+
+        if (error) {
+          console.error('Error updating release:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save changes",
+            variant: "destructive",
+          });
+        }
+      };
+
+      updateRelease();
+    }
   }, [
     primaryArtists,
     featuredArtists,
@@ -143,9 +173,7 @@ export function BasicInfo({ initialData, onUpdateReleaseName, onNext }: BasicInf
     subgenre,
     copyrightLine,
     releaseName,
-    initialData.upc,
-    initialData.catalogNumber,
-    initialData.format,
+    releaseId,
     onUpdateReleaseName,
   ]);
 

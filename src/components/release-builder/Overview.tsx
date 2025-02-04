@@ -9,28 +9,43 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface OverviewProps {
-  releaseData: ReleaseData;
-  errors: string[];
-  onNext: () => void;
-}
-
 export function Overview({ releaseData, errors, onNext }: OverviewProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id: releaseId } = useParams();
   
+  // Fetch the latest release data
+  const { data: latestReleaseData, isLoading } = useQuery({
+    queryKey: ['release', releaseId],
+    queryFn: async () => {
+      if (!releaseId) return null;
+      
+      const { data, error } = await supabase
+        .from('releases')
+        .select('*, tracks(*)')
+        .eq('id', releaseId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Get the data from session storage to ensure we have the latest values
   const basicInfoData = JSON.parse(sessionStorage.getItem('basicInfoData') || '{}');
+  const publishingData = JSON.parse(sessionStorage.getItem('publishingData') || '{}');
   
-  // Merge the session storage data with the props data
+  // Merge all data sources with priority to latest data
   const mergedData = {
     ...releaseData,
-    metadata_language: basicInfoData.metadata_language || releaseData.metadata_language,
-    primary_artists: basicInfoData.primary_artists || releaseData.primary_artists || [],
-    featured_artists: basicInfoData.featured_artists || releaseData.featured_artists || [],
-    genre: basicInfoData.genre || releaseData.genre,
-    subgenre: basicInfoData.subgenre || releaseData.subgenre,
+    ...latestReleaseData,
+    ...basicInfoData,
+    ...publishingData,
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   const handleSubmitRelease = async () => {
     try {

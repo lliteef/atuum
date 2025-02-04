@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowRight } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PublishingProps {
   initialData?: {
@@ -19,15 +22,52 @@ interface PublishingProps {
 }
 
 export function Publishing({ initialData, onPublishingUpdate, onNext }: PublishingProps) {
-  const [publishingType, setPublishingType] = useState<string>(initialData?.publishingType || "controlled");
-  const [publisherName, setPublisherName] = useState(initialData?.publisherName || "");
+  const { id: releaseId } = useParams();
+  const { toast } = useToast();
+  
+  // Get data from session storage or initial data
+  const savedData = JSON.parse(sessionStorage.getItem('publishingData') || '{}');
+  
+  const [publishingType, setPublishingType] = useState<string>(
+    savedData.publishingType || initialData?.publishingType || "controlled"
+  );
+  const [publisherName, setPublisherName] = useState(
+    savedData.publisherName || initialData?.publisherName || ""
+  );
 
   useEffect(() => {
-    onPublishingUpdate?.({
+    const dataToSave = {
       publishingType,
       publisherName: publishingType === "publisher" ? publisherName : undefined
-    });
-  }, [publishingType, publisherName, onPublishingUpdate]);
+    };
+    
+    sessionStorage.setItem('publishingData', JSON.stringify(dataToSave));
+    onPublishingUpdate?.(dataToSave);
+
+    // Update the release in the database
+    if (releaseId) {
+      const updateRelease = async () => {
+        const { error } = await supabase
+          .from('releases')
+          .update({
+            publishing_type: publishingType,
+            publisher_name: publishingType === "publisher" ? publisherName : null,
+          })
+          .eq('id', releaseId);
+
+        if (error) {
+          console.error('Error updating release:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save changes",
+            variant: "destructive",
+          });
+        }
+      };
+
+      updateRelease();
+    }
+  }, [publishingType, publisherName, releaseId, onPublishingUpdate]);
 
   return (
     <div className="p-6 space-y-6">
