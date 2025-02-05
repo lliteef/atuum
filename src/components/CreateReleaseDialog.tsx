@@ -41,13 +41,18 @@ export function CreateReleaseDialog() {
       return roles?.map(r => r.role) || [];
     },
     retry: false,
-    onError: (error) => {
-      console.error('Error fetching user roles:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load user permissions. Please try again.",
-        variant: "destructive",
-      });
+    meta: {
+      errorMessage: "Failed to load user permissions. Please try again."
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.error('Error fetching user roles:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load user permissions. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   });
 
