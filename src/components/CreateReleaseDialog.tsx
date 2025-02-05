@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -40,21 +39,20 @@ export function CreateReleaseDialog() {
       if (error) throw error;
       return roles?.map(r => r.role) || [];
     },
-    retry: false,
-    meta: {
-      errorMessage: "Failed to load user permissions. Please try again."
-    },
-    onSettled: (data, error) => {
-      if (error) {
-        console.error('Error fetching user roles:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load user permissions. Please try again.",
-          variant: "destructive",
-        });
-      }
-    }
+    retry: false
   });
+
+  // Handle error display using useEffect
+  useEffect(() => {
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
+      toast({
+        title: "Error",
+        description: "Failed to load user permissions. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [rolesError, toast]);
 
   const isLabelAdmin = userRoles?.includes('label_admin');
   const isSystemAdmin = userRoles?.includes('system_admin');
