@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,6 +8,7 @@ import { Plus, Disc, Music, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 type ReleaseType = "Digital" | "Music Video" | "Physical";
 type ReleaseFormat = "Album/Full Length" | "EP" | "Single";
@@ -22,6 +24,36 @@ export function CreateReleaseDialog() {
   const [hasUPC, setHasUPC] = useState<boolean>(false);
   const [upcNumber, setUpcNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch user roles
+  const { data: userRoles } = useQuery({
+    queryKey: ['user-roles'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      
+      return roles?.map(r => r.role) || [];
+    }
+  });
+
+  const isLabelAdmin = userRoles?.includes('label_admin');
+  const isSystemAdmin = userRoles?.includes('system_admin');
+
+  // Filter release types based on user role
+  const availableReleaseTypes: ReleaseType[] = (() => {
+    if (isSystemAdmin) {
+      return ["Digital", "Music Video", "Physical"];
+    }
+    if (isLabelAdmin) {
+      return ["Digital", "Music Video"];
+    }
+    return ["Digital"];
+  })();
 
   const handleCreateRelease = async () => {
     if (!releaseType || !format || !releaseName || !releaseNo) {
@@ -96,24 +128,23 @@ export function CreateReleaseDialog() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Release Type *</label>
             <div className="flex gap-4">
-              {[
-                { type: "Digital" as ReleaseType, icon: Music },
-                { type: "Music Video" as ReleaseType, icon: Video },
-                { type: "Physical" as ReleaseType, icon: Disc },
-              ].map(({ type, icon: Icon }) => (
-                <Button
-                  key={type}
-                  variant={releaseType === type ? "default" : "outline"}
-                  className={cn(
-                    "flex-1 gap-2",
-                    releaseType === type ? "bg-primary text-primary-foreground" : ""
-                  )}
-                  onClick={() => setReleaseType(type)}
-                >
-                  <Icon className="w-4 h-4" />
-                  {type}
-                </Button>
-              ))}
+              {availableReleaseTypes.map((type) => {
+                const Icon = type === "Digital" ? Music : type === "Music Video" ? Video : Disc;
+                return (
+                  <Button
+                    key={type}
+                    variant={releaseType === type ? "default" : "outline"}
+                    className={cn(
+                      "flex-1 gap-2",
+                      releaseType === type ? "bg-primary text-primary-foreground" : ""
+                    )}
+                    onClick={() => setReleaseType(type)}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {type}
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
