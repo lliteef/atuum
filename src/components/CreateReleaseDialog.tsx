@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export function CreateReleaseDialog() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch user roles
-  const { data: userRoles } = useQuery({
+  const { data: userRoles, isLoading: isLoadingRoles } = useQuery({
     queryKey: ['user-roles'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -54,6 +54,13 @@ export function CreateReleaseDialog() {
     }
     return ["Digital"];
   })();
+
+  // Reset release type if it's no longer available for the user's role
+  useEffect(() => {
+    if (releaseType && !availableReleaseTypes.includes(releaseType)) {
+      setReleaseType(null);
+    }
+  }, [availableReleaseTypes, releaseType]);
 
   const handleCreateRelease = async () => {
     if (!releaseType || !format || !releaseName || !releaseNo) {
@@ -128,7 +135,7 @@ export function CreateReleaseDialog() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Release Type *</label>
             <div className="flex gap-4">
-              {availableReleaseTypes.map((type) => {
+              {!isLoadingRoles && availableReleaseTypes.map((type) => {
                 const Icon = type === "Digital" ? Music : type === "Music Video" ? Video : Disc;
                 return (
                   <Button
@@ -145,6 +152,11 @@ export function CreateReleaseDialog() {
                   </Button>
                 );
               })}
+              {isLoadingRoles && (
+                <div className="w-full text-center text-muted-foreground">
+                  Loading available release types...
+                </div>
+              )}
             </div>
           </div>
 
