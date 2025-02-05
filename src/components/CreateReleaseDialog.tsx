@@ -25,19 +25,29 @@ export function CreateReleaseDialog() {
   const [upcNumber, setUpcNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch user roles
-  const { data: userRoles, isLoading: isLoadingRoles } = useQuery({
+  // Fetch user roles with proper error handling
+  const { data: userRoles, isLoading: isLoadingRoles, error: rolesError } = useQuery({
     queryKey: ['user-roles'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user) throw new Error('No authenticated user');
       
-      const { data: roles } = await supabase
+      const { data: roles, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id);
       
+      if (error) throw error;
       return roles?.map(r => r.role) || [];
+    },
+    retry: false,
+    onError: (error) => {
+      console.error('Error fetching user roles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load user permissions. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
@@ -46,12 +56,8 @@ export function CreateReleaseDialog() {
 
   // Filter release types based on user role
   const availableReleaseTypes: ReleaseType[] = (() => {
-    if (isSystemAdmin) {
-      return ["Digital", "Music Video", "Physical"];
-    }
-    if (isLabelAdmin) {
-      return ["Digital", "Music Video"];
-    }
+    if (isSystemAdmin) return ["Digital", "Music Video", "Physical"];
+    if (isLabelAdmin) return ["Digital", "Music Video"];
     return ["Digital"];
   })();
 
@@ -75,7 +81,6 @@ export function CreateReleaseDialog() {
     setIsLoading(true);
 
     try {
-      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -135,7 +140,7 @@ export function CreateReleaseDialog() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Release Type *</label>
             <div className="flex gap-4">
-              {!isLoadingRoles && availableReleaseTypes.map((type) => {
+              {!isLoadingRoles && !rolesError && availableReleaseTypes.map((type) => {
                 const Icon = type === "Digital" ? Music : type === "Music Video" ? Video : Disc;
                 return (
                   <Button
@@ -155,6 +160,11 @@ export function CreateReleaseDialog() {
               {isLoadingRoles && (
                 <div className="w-full text-center text-muted-foreground">
                   Loading available release types...
+                </div>
+              )}
+              {rolesError && (
+                <div className="w-full text-center text-destructive">
+                  Error loading release types. Please try again.
                 </div>
               )}
             </div>
