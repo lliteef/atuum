@@ -148,6 +148,8 @@ export default function Workstation() {
         return "bg-purple-500/10 text-purple-500";
       case "Taken Down":
         return "bg-red-500/10 text-red-500";
+      case "Error":
+        return "bg-red-600/10 text-red-600";
       default:
         return "bg-gray-500/10 text-gray-500";
     }
@@ -256,6 +258,11 @@ export default function Workstation() {
                 <p className="text-sm text-muted-foreground">
                   {formatArtists(release.primary_artists, release.featured_artists)}
                 </p>
+                {release.status === "Error" && release.rejection_reason && (
+                  <p className="text-sm text-red-500 mt-1">
+                    Rejected: {release.rejection_reason}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-4">

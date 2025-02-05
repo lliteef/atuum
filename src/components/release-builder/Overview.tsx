@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Calendar, Globe, Music2, Users2, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Calendar, Globe, Music2, Users2, AlertTriangle, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,8 @@ interface OverviewProps {
     selected_services?: string[];
     publishing_type?: string;
     publisher_name?: string;
+    status?: string;
+    rejection_reason?: string | null;
   };
   errors: string[];
   onNext: () => void;
@@ -36,7 +38,7 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id: releaseId } = useParams();
-  
+
   // Fetch the latest release data
   const { data: latestReleaseData, isLoading } = useQuery({
     queryKey: ['release', releaseId],
@@ -96,10 +98,39 @@ export function Overview({ releaseData, errors, onNext }: OverviewProps) {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "In Progress":
+        return "bg-yellow-500/10 text-yellow-500";
+      case "Ready":
+        return "bg-green-500/10 text-green-500";
+      case "Moderation":
+        return "bg-blue-500/10 text-blue-500";
+      case "Sent to Stores":
+        return "bg-purple-500/10 text-purple-500";
+      case "Taken Down":
+        return "bg-red-500/10 text-red-500";
+      case "Error":
+        return "bg-red-600/10 text-red-600";
+      default:
+        return "bg-gray-500/10 text-gray-500";
+    }
+  };
+
   return (
     <div className="container max-w-4xl mx-auto p-6 space-y-6">
       <h2 className="text-2xl font-bold">Overview</h2>
       
+      {releaseData.status === "Error" && releaseData.rejection_reason && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Release Rejected</AlertTitle>
+          <AlertDescription>
+            {releaseData.rejection_reason}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {errors.length > 0 && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
