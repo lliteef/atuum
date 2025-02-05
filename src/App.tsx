@@ -7,16 +7,17 @@ import { supabase } from "@/integrations/supabase/client";
 import Auth from "@/pages/Auth";
 import Workstation from "@/pages/Workstation";
 import ReleaseBuilder from "@/pages/ReleaseBuilder";
+import ReleaseViewer from "@/pages/ReleaseViewer";
 import Settings from "@/pages/Settings";
 import Insights from "@/pages/Insights";
 import Accounting from "@/pages/Accounting";
 import Fansifter from "@/pages/Fansifter";
+import ReleasedContent from "@/pages/ReleasedContent";
 import ConfirmInvitation from "@/pages/ConfirmInvitation";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { WorkstationHeader } from "@/components/WorkstationHeader";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -30,10 +31,11 @@ const queryClient = new QueryClient({
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isReleaseBuilder = location.pathname.includes('/release-builder');
+  const isReleaseViewer = location.pathname.includes('/release-viewer');
   const isAuth = location.pathname === '/auth';
   const isConfirmInvitation = location.pathname === '/confirm-invitation';
 
-  if (isReleaseBuilder || isAuth || isConfirmInvitation) {
+  if (isReleaseBuilder || isReleaseViewer || isAuth || isConfirmInvitation) {
     return <>{children}</>;
   }
 
@@ -112,6 +114,28 @@ function App() {
                 element={
                   session ? (
                     <ReleaseBuilder />
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/release-viewer/:id"
+                element={
+                  session ? (
+                    <ReleaseViewer />
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/released-content"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <ReleasedContent />
+                    </AppLayout>
                   ) : (
                     <Navigate to="/auth" replace />
                   )

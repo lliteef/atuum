@@ -56,7 +56,7 @@ export type Database = {
           created_at?: string
           first_name?: string | null
           full_name?: string | null
-          id: string
+          id?: string
           last_name?: string | null
           updated_at?: string
           username?: string | null
@@ -82,13 +82,13 @@ export type Database = {
           primary_artists: string[] | null
           publisher_name: string | null
           publishing_type: string | null
+          rejection_reason: string | null
           release_date: string | null
           release_name: string
           sales_start_date: string | null
           selected_services: string[] | null
           selected_territories: string[] | null
-          status: "In Progress" | "Ready" | "Moderation" | "Sent to Stores" | "Taken Down" | "Error"
-          rejection_reason: string | null
+          status: Database["public"]["Enums"]["release_status"] | null
           subgenre: string | null
           upc: string | null
           updated_at: string | null
@@ -111,13 +111,13 @@ export type Database = {
           primary_artists?: string[] | null
           publisher_name?: string | null
           publishing_type?: string | null
+          rejection_reason?: string | null
           release_date?: string | null
           release_name: string
           sales_start_date?: string | null
           selected_services?: string[] | null
           selected_territories?: string[] | null
-          status?: "In Progress" | "Ready" | "Moderation" | "Sent to Stores" | "Taken Down" | "Error"
-          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["release_status"] | null
           subgenre?: string | null
           upc?: string | null
           updated_at?: string | null
@@ -140,13 +140,13 @@ export type Database = {
           primary_artists?: string[] | null
           publisher_name?: string | null
           publishing_type?: string | null
+          rejection_reason?: string | null
           release_date?: string | null
           release_name?: string
           sales_start_date?: string | null
           selected_services?: string[] | null
           selected_territories?: string[] | null
-          status?: "In Progress" | "Ready" | "Moderation" | "Sent to Stores" | "Taken Down" | "Error"
-          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["release_status"] | null
           subgenre?: string | null
           upc?: string | null
           updated_at?: string | null
@@ -295,7 +295,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -307,10 +307,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
-    : never
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
