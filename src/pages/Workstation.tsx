@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreateReleaseDialog } from "@/components/CreateReleaseDialog";
 import {
@@ -27,7 +27,6 @@ import type { Database } from "@/integrations/supabase/types";
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 
 export default function Workstation() {
-  const [selectedStatus, setSelectedStatus] = useState<ReleaseStatus | "All">("All");
   const [takedownDialogOpen, setTakedownDialogOpen] = useState(false);
   const [selectedRelease, setSelectedRelease] = useState<any>(null);
   const [password, setPassword] = useState("");
@@ -64,11 +63,9 @@ export default function Workstation() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // If user is a moderator, show only releases in Moderation status
       if (isModerator) {
         query = query.eq('status', 'Moderation');
       } else {
-        // For regular users, show their own releases
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           query = query.eq('created_by', user.id);
@@ -83,7 +80,6 @@ export default function Workstation() {
   });
 
   const handleEdit = (release: any) => {
-    // If the release was previously sent to stores, set it back to moderation
     if (release.status === "Sent to Stores") {
       supabase
         .from('releases')
@@ -146,20 +142,6 @@ export default function Workstation() {
     }
   };
 
-  const filteredReleases = releases?.filter(release => 
-    selectedStatus === "All" ? true : release.status === selectedStatus
-  ) || [];
-
-  const recentReleases = releases?.filter(release => 
-    new Date(release.release_date) <= new Date()
-  ) || [];
-
-  const upcomingReleases = releases?.filter(release => 
-    new Date(release.release_date) > new Date()
-  ) || [];
-
-  const statusOptions: (ReleaseStatus | "All")[] = ["All", "In Progress", "Ready", "Moderation", "Sent to Stores", "Taken Down"];
-
   const formatArtists = (primaryArtists?: string[] | null, featuredArtists?: string[] | null) => {
     const primary = primaryArtists?.join(", ") || "";
     const featured = featuredArtists?.length ? ` feat. ${featuredArtists.join(", ")}` : "";
@@ -189,173 +171,253 @@ export default function Workstation() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Catalog</h1>
-        <CreateReleaseDialog />
+        {!isModerator && <CreateReleaseDialog />}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Releases */}
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle>Recent Releases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {recentReleases.length > 0 ? (
-              <div className="space-y-4">
-                {recentReleases.map((release) => (
-                  <div key={release.id} className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">{release.release_name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {formatArtists(release.primary_artists, release.featured_artists)}
-                      </p>
+      {isModerator ? (
+        <div className="space-y-4">
+          {releases && releases.length > 0 ? (
+            releases.map((release) => (
+              <div 
+                key={release.id} 
+                className="flex items-center justify-between p-4 bg-card rounded-lg border"
+              >
+                <div className="flex items-center gap-4">
+                  {release.artwork_url ? (
+                    <img 
+                      src={release.artwork_url} 
+                      alt={release.release_name}
+                      className="w-12 h-12 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                      <span className="text-muted-foreground text-xs">No Art</span>
                     </div>
-                    <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
-                      {release.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No recent releases</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Releases */}
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle>Upcoming Releases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {upcomingReleases.length > 0 ? (
-              <div className="space-y-4">
-                {upcomingReleases.map((release) => (
-                  <div key={release.id} className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">{release.release_name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {formatArtists(release.primary_artists, release.featured_artists)}
-                      </p>
-                    </div>
-                    <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
-                      {release.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No upcoming releases</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Status Filter Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {statusOptions.map((status) => (
-          <Button
-            key={status}
-            variant={selectedStatus === status ? "default" : "outline"}
-            onClick={() => setSelectedStatus(status)}
-            size="sm"
-          >
-            {status}
-          </Button>
-        ))}
-      </div>
-
-      {/* All Releases List */}
-      <div className="space-y-4">
-        {filteredReleases.map((release) => (
-          <div 
-            key={release.id} 
-            className="flex items-center justify-between p-4 bg-card rounded-lg border"
-          >
-            <div className="flex items-center gap-4">
-              {release.artwork_url ? (
-                <img 
-                  src={release.artwork_url} 
-                  alt={release.release_name}
-                  className="w-12 h-12 rounded object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
-                  <span className="text-muted-foreground text-xs">No Art</span>
-                </div>
-              )}
-              <div>
-                <h3 className="font-medium">{release.release_name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {formatArtists(release.primary_artists, release.featured_artists)}
-                </p>
-                {release.status === "Error" && release.rejection_reason && (
-                  <p className="text-sm text-red-500 mt-1">
-                    Rejected: {release.rejection_reason}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm">
-                {release.upc ? `UPC: ${release.upc}` : 'No UPC'}
-              </span>
-              <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
-                {release.status}
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="relative"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
-                  className="w-[200px] bg-popover"
-                >
-                  <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleEdit(release);
-                    }}
-                  >
-                    Edit
-                  </DropdownMenuItem>
-                  {isModerator && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        navigate(`/release-viewer/${release.id}`);
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Shield className="h-4 w-4" />
-                      View as Moderator
-                    </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleTakedownClick(release);
-                    }}
-                    className="text-red-500 focus:text-red-500"
-                  >
-                    Takedown
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <div>
+                    <h3 className="font-medium">{release.release_name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {formatArtists(release.primary_artists, release.featured_artists)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm">
+                    {release.upc ? `UPC: ${release.upc}` : 'No UPC'}
+                  </span>
+                  <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
+                    {release.status}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="relative"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="end" 
+                      className="w-[200px] bg-popover"
+                    >
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigate(`/release-viewer/${release.id}`);
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Shield className="h-4 w-4" />
+                        View as Moderator
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleTakedownClick(release);
+                        }}
+                        className="text-red-500 focus:text-red-500"
+                      >
+                        Takedown
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-semibold text-muted-foreground">Cheers, no work for now! 🎉</h2>
+              <p className="text-muted-foreground mt-2">There are no releases that need moderation at the moment.</p>
             </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="bg-card">
+              <CardHeader>
+                <CardTitle>Recent Releases</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {releases.length > 0 ? (
+                  <div className="space-y-4">
+                    {releases.map((release) => (
+                      <div key={release.id} className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium">{release.release_name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {formatArtists(release.primary_artists, release.featured_artists)}
+                          </p>
+                        </div>
+                        <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
+                          {release.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No recent releases</p>
+                )}
+              </CardContent>
+            </Card>
 
-      {/* Takedown Confirmation Dialog */}
+            <Card className="bg-card">
+              <CardHeader>
+                <CardTitle>Upcoming Releases</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {releases.length > 0 ? (
+                  <div className="space-y-4">
+                    {releases.map((release) => (
+                      <div key={release.id} className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium">{release.release_name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {formatArtists(release.primary_artists, release.featured_artists)}
+                          </p>
+                        </div>
+                        <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
+                          {release.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No upcoming releases</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex gap-2 flex-wrap">
+            {["All", "In Progress", "Ready", "Moderation", "Sent to Stores", "Taken Down"].map((status) => (
+              <Button
+                key={status}
+                variant={"outline"}
+                onClick={() => {}}
+                size="sm"
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            {releases.map((release) => (
+              <div 
+                key={release.id} 
+                className="flex items-center justify-between p-4 bg-card rounded-lg border"
+              >
+                <div className="flex items-center gap-4">
+                  {release.artwork_url ? (
+                    <img 
+                      src={release.artwork_url} 
+                      alt={release.release_name}
+                      className="w-12 h-12 rounded object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                      <span className="text-muted-foreground text-xs">No Art</span>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-medium">{release.release_name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {formatArtists(release.primary_artists, release.featured_artists)}
+                    </p>
+                    {release.status === "Error" && release.rejection_reason && (
+                      <p className="text-sm text-red-500 mt-1">
+                        Rejected: {release.rejection_reason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm">
+                    {release.upc ? `UPC: ${release.upc}` : 'No UPC'}
+                  </span>
+                  <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
+                    {release.status}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="relative"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="end" 
+                      className="w-[200px] bg-popover"
+                    >
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleEdit(release);
+                        }}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      {isModerator && (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate(`/release-viewer/${release.id}`);
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <Shield className="h-4 w-4" />
+                          View as Moderator
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleTakedownClick(release);
+                        }}
+                        className="text-red-500 focus:text-red-500"
+                      >
+                        Takedown
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       <Dialog open={takedownDialogOpen} onOpenChange={setTakedownDialogOpen}>
         <DialogContent>
           <DialogHeader>
