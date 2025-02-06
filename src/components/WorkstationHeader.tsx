@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
+import { LogOut, Eye } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { Switch } from "@/components/ui/switch";
 
 const getRoleDisplayName = (role: Database['public']['Enums']['app_role']): string => {
   const displayNames: Record<Database['public']['Enums']['app_role'], string> = {
@@ -32,6 +33,8 @@ export function WorkstationHeader() {
     firstName: undefined,
     lastName: undefined,
   });
+  const [viewAsModerator, setViewAsModerator] = useState(false);
+  const isModerator = userInfo.roles.includes('moderator');
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -70,6 +73,17 @@ export function WorkstationHeader() {
     }
   };
 
+  const handleViewAsModeratorChange = (checked: boolean) => {
+    setViewAsModerator(checked);
+    if (checked) {
+      toast.success('Now viewing as moderator');
+    } else {
+      toast.success('Returned to normal view');
+    }
+    // Store the preference in localStorage
+    localStorage.setItem('viewAsModerator', checked.toString());
+  };
+
   const displayName = userInfo.firstName && userInfo.lastName
     ? `${userInfo.firstName} ${userInfo.lastName}`
     : userInfo.email;
@@ -87,6 +101,16 @@ export function WorkstationHeader() {
         </div>
         
         <div className="flex items-center gap-4">
+          {isModerator && (
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">View as Moderator</span>
+              <Switch
+                checked={viewAsModerator}
+                onCheckedChange={handleViewAsModeratorChange}
+              />
+            </div>
+          )}
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">{displayName}</span>
             <span className="text-muted-foreground">|</span>
