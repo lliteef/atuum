@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreateReleaseDialog } from "@/components/CreateReleaseDialog";
 import {
@@ -263,7 +263,7 @@ export default function Workstation() {
                 <CardTitle>Recent Releases</CardTitle>
               </CardHeader>
               <CardContent>
-                {releases.length > 0 ? (
+                {releases?.length > 0 ? (
                   <div className="space-y-4">
                     {releases.map((release) => (
                       <div key={release.id} className="flex justify-between items-center">
@@ -290,7 +290,7 @@ export default function Workstation() {
                 <CardTitle>Upcoming Releases</CardTitle>
               </CardHeader>
               <CardContent>
-                {releases.length > 0 ? (
+                {releases?.length > 0 ? (
                   <div className="space-y-4">
                     {releases.map((release) => (
                       <div key={release.id} className="flex justify-between items-center">
