@@ -19,8 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { MoreVertical } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { MoreVertical, Eye, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -51,6 +51,23 @@ export default function Workstation() {
       return data;
     }
   });
+
+  const { data: userRoles } = useQuery({
+    queryKey: ['user-roles'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      
+      return (data || []).map(r => r.role);
+    }
+  });
+
+  const isModerator = userRoles?.includes('moderator');
 
   const handleEdit = (release: any) => {
     // If the release was previously sent to stores, set it back to moderation
@@ -295,6 +312,19 @@ export default function Workstation() {
                   >
                     Edit
                   </DropdownMenuItem>
+                  {isModerator && (
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(`/release-viewer/${release.id}`);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Shield className="h-4 w-4" />
+                      View as Moderator
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem 
                     onClick={(e) => {
                       e.preventDefault();
