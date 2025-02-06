@@ -392,3 +392,5 @@ export default function Workstation() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
