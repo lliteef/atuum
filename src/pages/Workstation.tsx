@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { MoreVertical, Eye, Shield } from "lucide-react";
+import { MoreVertical, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -39,19 +39,6 @@ export default function Workstation() {
     document.title = "Workstation | IMG";
   }, []);
 
-  const { data: releases, refetch } = useQuery({
-    queryKey: ['releases'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('releases')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
   const { data: userRoles } = useQuery({
     queryKey: ['user-roles'],
     queryFn: async () => {
@@ -68,6 +55,32 @@ export default function Workstation() {
   });
 
   const isModerator = userRoles?.includes('moderator');
+
+  const { data: releases, refetch } = useQuery({
+    queryKey: ['releases'],
+    queryFn: async () => {
+      let query = supabase
+        .from('releases')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // If user is a moderator, show only releases in Moderation status
+      if (isModerator) {
+        query = query.eq('status', 'Moderation');
+      } else {
+        // For regular users, show their own releases
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          query = query.eq('created_by', user.id);
+        }
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userRoles,
+  });
 
   const handleEdit = (release: any) => {
     // If the release was previously sent to stores, set it back to moderation
@@ -379,5 +392,3 @@ export default function Workstation() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}

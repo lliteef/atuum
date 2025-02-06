@@ -13,6 +13,7 @@ import Insights from "@/pages/Insights";
 import Accounting from "@/pages/Accounting";
 import Fansifter from "@/pages/Fansifter";
 import ReleasedContent from "@/pages/ReleasedContent";
+import TakenDownContent from "@/pages/TakenDownContent";
 import ConfirmInvitation from "@/pages/ConfirmInvitation";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { WorkstationHeader } from "@/components/WorkstationHeader";
@@ -27,7 +28,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Layout wrapper component
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isReleaseBuilder = location.pathname.includes('/release-builder');
@@ -183,6 +183,18 @@ function App() {
                   session ? (
                     <AppLayout>
                       <Fansifter />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/taken-down-content"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <TakenDownContent />
                     </AppLayout>
                   ) : (
                     <Navigate to="/auth" replace />
