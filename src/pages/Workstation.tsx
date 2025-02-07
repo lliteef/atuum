@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -321,62 +322,6 @@ export default function Workstation() {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Catalog</h1>
         <CreateReleaseDialog />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle>Recent Releases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {releases && releases.length > 0 ? (
-              <div className="space-y-4">
-                {releases.map((release) => (
-                  <div key={release.id} className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">{release.release_name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {formatArtists(release.primary_artists, release.featured_artists)}
-                      </p>
-                    </div>
-                    <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
-                      {release.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No recent releases</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle>Upcoming Releases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {releases && releases.length > 0 ? (
-              <div className="space-y-4">
-                {releases.map((release) => (
-                  <div key={release.id} className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">{release.release_name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {formatArtists(release.primary_artists, release.featured_artists)}
-                      </p>
-                    </div>
-                    <span className={`text-sm px-2 py-1 rounded ${getStatusColor(release.status)}`}>
-                      {release.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No upcoming releases</p>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       <div className="flex gap-2 flex-wrap">
