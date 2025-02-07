@@ -173,7 +173,7 @@ export default function ReleaseBuilder() {
       case "artwork":
         return (
           <Artwork
-            initialArtworkUrl={releaseData?.artwork_url}
+            initialData={{ artworkUrl: releaseData?.artwork_url }}
             onArtworkUpdate={(url) => handleUpdateReleaseData({ artwork_url: url })}
             onNext={() => setCurrentSection("tracks")}
           />
@@ -218,7 +218,10 @@ export default function ReleaseBuilder() {
               publishingType: releaseData?.publishing_type,
               publisherName: releaseData?.publisher_name,
             }}
-            onPublishingUpdate={(data) => handleUpdateReleaseData(data)}
+            onPublishingUpdate={(data) => handleUpdateReleaseData({
+              publishing_type: data.publishingType,
+              publisher_name: data.publisherName
+            })}
             onNext={() => setCurrentSection("overview")}
           />
         );
