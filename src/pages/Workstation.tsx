@@ -236,6 +236,24 @@ export default function Workstation() {
                         <Shield className="h-4 w-4" />
                         View as Moderator
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleEdit(release);
+                        }}
+                      >
+                        Edit Release
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigate(`/release-builder/${release.id}`);
+                        }}
+                      >
+                        Full Edit
+                      </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={(e) => {
                           e.preventDefault();
