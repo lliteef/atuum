@@ -18,6 +18,7 @@ import ConfirmInvitation from "@/pages/ConfirmInvitation";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { WorkstationHeader } from "@/components/WorkstationHeader";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import PhysicalRequests from "@/pages/PhysicalRequests";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -142,6 +143,30 @@ function App() {
                 }
               />
               <Route
+                path="/taken-down-content"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <TakenDownContent />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/physical-requests"
+                element={
+                  session ? (
+                    <AppLayout>
+                      <PhysicalRequests />
+                    </AppLayout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
                 path="/settings"
                 element={
                   session ? (
@@ -183,18 +208,6 @@ function App() {
                   session ? (
                     <AppLayout>
                       <Fansifter />
-                    </AppLayout>
-                  ) : (
-                    <Navigate to="/auth" replace />
-                  )
-                }
-              />
-              <Route
-                path="/taken-down-content"
-                element={
-                  session ? (
-                    <AppLayout>
-                      <TakenDownContent />
                     </AppLayout>
                   ) : (
                     <Navigate to="/auth" replace />

@@ -1,3 +1,4 @@
+
 import {
   Sidebar,
   SidebarContent,
@@ -8,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { BarChart2, Cog, Home, Music2, Rocket, Wallet, Archive } from "lucide-react";
+import { BarChart2, Cog, Home, Disc, Archive, Trash2, Rocket } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +30,45 @@ export function DashboardSidebar() {
     }
   });
 
-  const menuItems = [
+  const moderatorMenuItems = [
+    {
+      title: "Workstation",
+      icon: Home,
+      path: "/",
+    },
+    {
+      title: "Physical Requests",
+      icon: Disc,
+      path: "/physical-requests",
+    },
+    {
+      title: "Released Content",
+      icon: Archive,
+      path: "/released-content",
+    },
+    {
+      title: "Taken Down Content",
+      icon: Trash2,
+      path: "/taken-down-content",
+    },
+    {
+      title: "Marketing",
+      icon: Rocket,
+      path: "/fansifter",
+    },
+    {
+      title: "Insights",
+      icon: BarChart2,
+      path: "/insights",
+    },
+    {
+      title: "Settings",
+      icon: Cog,
+      path: "/settings",
+    },
+  ];
+
+  const regularMenuItems = [
     {
       title: "Workstation",
       icon: Home,
@@ -46,25 +85,13 @@ export function DashboardSidebar() {
       path: "/insights",
     },
     {
-      title: "Accounting",
-      icon: Wallet,
-      path: "/accounting",
-    },
-    {
       title: "Settings",
       icon: Cog,
       path: "/settings",
     },
   ];
 
-  // Add Released Content menu item for moderators
-  if (isModerator) {
-    menuItems.push({
-      title: "Released Content",
-      icon: Archive,
-      path: "/released-content",
-    });
-  }
+  const menuItems = isModerator ? moderatorMenuItems : regularMenuItems;
 
   return (
     <Sidebar>
