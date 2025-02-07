@@ -102,6 +102,9 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
           audioFilename: fileName,
         };
 
+        setTracks(prev => [...prev, newTrack]);
+        setSelectedTrackId(newTrack.id);
+
         // Save track metadata to Supabase
         const { error: dbError } = await supabase
           .from('tracks')
@@ -127,9 +130,6 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
 
         if (dbError) throw dbError;
 
-        setTracks(prev => [...prev, newTrack]);
-        setSelectedTrackId(newTrack.id);
-
         toast({
           title: "Track uploaded",
           description: "Track has been added successfully",
@@ -145,10 +145,50 @@ export function Tracks({ initialData, onTracksUpdate, onNext }: TracksProps) {
     }
   };
 
-  const updateTrack = (trackId: string, updates: Partial<Track>) => {
-    setTracks(prev => prev.map(track => 
+  const updateTrack = async (trackId: string, updates: Partial<Track>) => {
+    const updatedTracks = tracks.map(track => 
       track.id === trackId ? { ...track, ...updates } : track
-    ));
+    );
+    setTracks(updatedTracks);
+
+    // Update track metadata in Supabase
+    if (initialData?.releaseId) {
+      try {
+        const { error: dbError } = await supabase
+          .from('tracks')
+          .update({
+            title: updates.title,
+            version: updates.version,
+            isrc: updates.isrc,
+            lyrics_language: updates.lyricsLanguage,
+            explicit_content: updates.explicitContent,
+            lyrics: updates.lyrics,
+            primary_artists: updates.primaryArtists,
+            featured_artists: updates.featuredArtists,
+            remixers: updates.remixers,
+            songwriters: updates.songwriters,
+            producers: updates.producers,
+            additional_contributors: updates.additionalContributors,
+            p_line: updates.pLine,
+          })
+          .eq('release_id', initialData.releaseId)
+          .eq('id', trackId);
+
+        if (dbError) throw dbError;
+
+        toast({
+          title: "Track updated",
+          description: "Track metadata has been saved",
+        });
+      } catch (error) {
+        console.error('Update error:', error);
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const getDisplayName = (track: Track) => {
