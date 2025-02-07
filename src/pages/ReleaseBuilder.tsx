@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -49,6 +50,7 @@ export default function ReleaseBuilder() {
   const { toast } = useToast();
   const [currentSection, setCurrentSection] = useState<ReleaseSection>("basic-info");
   const [releaseName, setReleaseName] = useState<string>("");
+  const [releaseData, setReleaseData] = useState<ReleaseData | null>(null);
   const [territoriesAndServicesData, setTerritoriesAndServicesData] = useState<{
     selectedTerritories: string[];
     selectedServices: string[];
@@ -89,11 +91,47 @@ export default function ReleaseBuilder() {
     enabled: !!id,
   });
 
+  // Update releaseData when release data is loaded
   useEffect(() => {
-    if (release?.release_name) {
+    if (release) {
+      setReleaseData(release);
       setReleaseName(release.release_name);
+      setTerritoriesAndServicesData({
+        selectedTerritories: release.selected_territories || [],
+        selectedServices: release.selected_services || [],
+      });
     }
-  }, [release?.release_name]);
+  }, [release]);
+
+  // Effect to persist territories and services data
+  useEffect(() => {
+    if (id && releaseData) {
+      const updateRelease = async () => {
+        const { error } = await supabase
+          .from('releases')
+          .update({
+            selected_territories: territoriesAndServicesData.selectedTerritories,
+            selected_services: territoriesAndServicesData.selectedServices,
+          })
+          .eq('id', id);
+
+        if (error) {
+          console.error('Error updating territories and services:', error);
+          toast({
+            title: "Error",
+            description: "Failed to save territories and services",
+            variant: "destructive",
+          });
+        }
+      };
+
+      updateRelease();
+    }
+  }, [territoriesAndServicesData, id]);
+
+  const handleUpdateReleaseData = (newData: Partial<ReleaseData>) => {
+    setReleaseData(prev => prev ? { ...prev, ...newData } : newData as ReleaseData);
+  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -116,50 +154,79 @@ export default function ReleaseBuilder() {
         return (
           <BasicInfo
             initialData={{
-              releaseName: release?.release_name || "",
-              upc: release?.upc,
-              catalogNumber: release?.catalog_number || "",
-              format: release?.format || "single",
-              metadataLanguage: release?.metadata_language,
-              primaryArtists: release?.primary_artists,
-              featuredArtists: release?.featured_artists,
-              genre: release?.genre,
-              subgenre: release?.subgenre,
-              label: release?.label,
-              copyrightLine: release?.copyright_line,
+              releaseName: releaseData?.release_name || "",
+              upc: releaseData?.upc,
+              catalogNumber: releaseData?.catalog_number || "",
+              format: releaseData?.format || "single",
+              metadataLanguage: releaseData?.metadata_language,
+              primaryArtists: releaseData?.primary_artists,
+              featuredArtists: releaseData?.featured_artists,
+              genre: releaseData?.genre,
+              subgenre: releaseData?.subgenre,
+              label: releaseData?.label,
+              copyrightLine: releaseData?.copyright_line,
             }}
             onUpdateReleaseName={setReleaseName}
             onNext={() => setCurrentSection("artwork")}
           />
         );
       case "artwork":
-        return <Artwork onNext={() => setCurrentSection("tracks")} />;
+        return (
+          <Artwork
+            initialArtworkUrl={releaseData?.artwork_url}
+            onArtworkUpdate={(url) => handleUpdateReleaseData({ artwork_url: url })}
+            onNext={() => setCurrentSection("tracks")}
+          />
+        );
       case "tracks":
         return (
           <Tracks
             initialData={{
-              tracks: [],
+              tracks: releaseData?.tracks || [],
               releaseId: id,
             }}
+            onTracksUpdate={(tracks) => handleUpdateReleaseData({ tracks })}
             onNext={() => setCurrentSection("scheduling")}
           />
         );
       case "scheduling":
-        return <Scheduling onNext={() => setCurrentSection("territories")} />;
+        return (
+          <Scheduling
+            initialData={{
+              releaseDate: releaseData?.release_date ? new Date(releaseData.release_date) : undefined,
+              salesStartDate: releaseData?.sales_start_date ? new Date(releaseData.sales_start_date) : undefined,
+              presaveOption: releaseData?.presave_option,
+              presaveDate: releaseData?.presave_date ? new Date(releaseData.presave_date) : undefined,
+              pricing: releaseData?.pricing,
+            }}
+            onSchedulingUpdate={(data) => handleUpdateReleaseData(data)}
+            onNext={() => setCurrentSection("territories")}
+          />
+        );
       case "territories":
         return (
           <TerritoriesAndServices 
-            onNext={() => setCurrentSection("publishing")}
+            initialData={territoriesAndServicesData}
             onUpdateData={setTerritoriesAndServicesData}
+            onNext={() => setCurrentSection("publishing")}
           />
         );
       case "publishing":
-        return <Publishing onNext={() => setCurrentSection("overview")} />;
+        return (
+          <Publishing
+            initialData={{
+              publishingType: releaseData?.publishing_type,
+              publisherName: releaseData?.publisher_name,
+            }}
+            onPublishingUpdate={(data) => handleUpdateReleaseData(data)}
+            onNext={() => setCurrentSection("overview")}
+          />
+        );
       case "overview":
         return (
           <Overview
             releaseData={{
-              ...release,
+              ...releaseData,
               selected_territories: territoriesAndServicesData.selectedTerritories,
               selected_services: territoriesAndServicesData.selectedServices,
             }}
@@ -182,8 +249,8 @@ export default function ReleaseBuilder() {
       <div className="flex h-screen w-full bg-background">
         <ReleaseBuilderSidebar
           releaseName={releaseName}
-          upc={release?.upc}
-          status={release?.status || "In Progress"}
+          upc={releaseData?.upc}
+          status={releaseData?.status || "In Progress"}
           currentSection={currentSection}
           onSectionChange={setCurrentSection}
         />

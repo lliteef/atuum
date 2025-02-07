@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,28 +55,28 @@ const streamingServices = [
 ];
 
 interface TerritoriesAndServicesProps {
-  onNext: () => void;
+  initialData?: {
+    selectedTerritories: string[];
+    selectedServices: string[];
+  };
   onUpdateData: (data: { selectedTerritories: string[], selectedServices: string[] }) => void;
+  onNext: () => void;
 }
 
-export function TerritoriesAndServices({ onNext, onUpdateData }: TerritoriesAndServicesProps) {
-  // Initialize state from sessionStorage
-  const savedData = JSON.parse(sessionStorage.getItem('territoriesAndServicesData') || '{}');
-  
+export function TerritoriesAndServices({ initialData, onUpdateData, onNext }: TerritoriesAndServicesProps) {
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(
-    savedData.selectedTerritories || territories
+    initialData?.selectedTerritories || territories
   );
   const [selectedServices, setSelectedServices] = useState<string[]>(
-    savedData.selectedServices || streamingServices
+    initialData?.selectedServices || streamingServices
   );
 
-  // Save to session storage and update parent whenever selections change
+  // Effect to notify parent of changes
   useEffect(() => {
     const dataToSave = {
       selectedTerritories,
       selectedServices
     };
-    sessionStorage.setItem('territoriesAndServicesData', JSON.stringify(dataToSave));
     onUpdateData(dataToSave);
   }, [selectedTerritories, selectedServices, onUpdateData]);
 
