@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -14,7 +15,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
-type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 
 export interface ReleaseData {
@@ -155,6 +155,10 @@ export default function ReleaseBuilder() {
     );
   }
 
+  const handleSectionChange = (section: ReleaseSection) => {
+    setCurrentSection(section);
+  };
+
   const renderSection = () => {
     switch (currentSection) {
       case "basic-info":
@@ -262,7 +266,7 @@ export default function ReleaseBuilder() {
           upc={releaseData?.upc}
           status={releaseData?.status || "In Progress"}
           currentSection={currentSection}
-          onSectionChange={setCurrentSection}
+          onSectionChange={handleSectionChange}
           sections={sections}
         />
         <main className="flex-1 overflow-y-auto">
@@ -272,3 +276,4 @@ export default function ReleaseBuilder() {
     </SidebarProvider>
   );
 }
+
