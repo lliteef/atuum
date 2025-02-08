@@ -120,10 +120,7 @@ export function CreateReleaseDialog() {
 
       // Navigate to appropriate builder based on release type
       if (releaseType === "Music Video") {
-        toast({
-          title: "Coming Soon",
-          description: "Music Video Release Builder is under development",
-        });
+        navigate(`/music-video-release-builder/${release.id}`);
         return;
       }
 
