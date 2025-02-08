@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -57,10 +58,10 @@ export function CreateReleaseDialog() {
   const isLabelAdmin = userRoles?.includes('label_admin');
   const isSystemAdmin = userRoles?.includes('system_admin');
 
-  // Filter release types based on user role
+  // Filter release types based on user role - updated to include Physical for label_admin
   const availableReleaseTypes: ReleaseType[] = (() => {
     if (isSystemAdmin) return ["Digital", "Music Video", "Physical"];
-    if (isLabelAdmin) return ["Digital", "Music Video"];
+    if (isLabelAdmin) return ["Digital", "Music Video", "Physical"];
     return ["Digital"];
   })();
 
