@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -13,10 +14,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
-type ReleaseSection = "basic-info" | "thumbnail" | "video" | "scheduling" | "territories" | "overview";
+// Define the ReleaseSection type to match both components
+export type ReleaseSection = "basic-info" | "thumbnail" | "video" | "scheduling" | "territories" | "overview";
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 
-export interface MusicVideoReleaseData extends Database["public"]["Tables"]["releases"]["Row"] {
+// Define the type for release data
+type DbRelease = Database["public"]["Tables"]["releases"]["Row"];
+export interface MusicVideoReleaseData {
+  id?: string;
   release_name: string;
   upc?: string;
   catalog_number?: string;
@@ -37,6 +42,9 @@ export interface MusicVideoReleaseData extends Database["public"]["Tables"]["rel
   selected_territories?: string[];
   selected_services?: string[];
   status?: ReleaseStatus;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
 }
 
 export default function MusicVideoReleaseBuilder() {
@@ -230,6 +238,15 @@ export default function MusicVideoReleaseBuilder() {
     }
   };
 
+  const sections: { id: ReleaseSection; label: string }[] = [
+    { id: "basic-info", label: "Basic Info" },
+    { id: "thumbnail", label: "Thumbnail" },
+    { id: "video", label: "Video" },
+    { id: "scheduling", label: "Scheduling and Pricing" },
+    { id: "territories", label: "Territories and Services" },
+    { id: "overview", label: "Overview" },
+  ];
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full bg-background">
@@ -238,15 +255,8 @@ export default function MusicVideoReleaseBuilder() {
           upc={releaseData?.upc}
           status={releaseData?.status || "In Progress"}
           currentSection={currentSection}
-          onSectionChange={setCurrentSection}
-          sections={[
-            { id: "basic-info", label: "Basic Info" },
-            { id: "thumbnail", label: "Thumbnail" },
-            { id: "video", label: "Video" },
-            { id: "scheduling", label: "Scheduling and Pricing" },
-            { id: "territories", label: "Territories and Services" },
-            { id: "overview", label: "Overview" },
-          ]}
+          onSectionChange={(section: ReleaseSection) => setCurrentSection(section)}
+          sections={sections}
         />
         <main className="flex-1 overflow-y-auto">
           {renderSection()}
