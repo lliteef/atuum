@@ -11,7 +11,7 @@ import {
 import { Database } from "@/integrations/supabase/types";
 
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
-export type ReleaseSection = "basic-info" | "thumbnail" | "video" | "scheduling" | "territories" | "overview";
+export type ReleaseSection = "basic-info" | "artwork" | "thumbnail" | "tracks" | "video" | "scheduling" | "territories" | "publishing" | "overview";
 
 interface ReleaseBuilderSidebarProps {
   releaseName: string;

@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ReleaseBuilderSidebar } from "@/components/ReleaseBuilderSidebar";
+import { ReleaseBuilderSidebar, ReleaseSection } from "@/components/ReleaseBuilderSidebar";
 import { BasicInfo } from "@/components/release-builder/BasicInfo";
 import { Artwork } from "@/components/release-builder/Artwork";
 import { Tracks } from "@/components/release-builder/Tracks";
@@ -56,6 +55,16 @@ export default function ReleaseBuilder() {
     selectedServices: string[];
   }>({ selectedTerritories: [], selectedServices: [] });
 
+  const sections: { id: ReleaseSection; label: string }[] = [
+    { id: "basic-info", label: "Basic Info" },
+    { id: "artwork", label: "Artwork" },
+    { id: "tracks", label: "Tracks" },
+    { id: "scheduling", label: "Scheduling and Pricing" },
+    { id: "territories", label: "Territories and Services" },
+    { id: "publishing", label: "Publishing" },
+    { id: "overview", label: "Overview" },
+  ];
+
   const { data: release, isLoading, error } = useQuery({
     queryKey: ['release', id],
     queryFn: async () => {
@@ -91,7 +100,6 @@ export default function ReleaseBuilder() {
     enabled: !!id,
   });
 
-  // Update releaseData when release data is loaded
   useEffect(() => {
     if (release) {
       setReleaseData(release);
@@ -103,7 +111,6 @@ export default function ReleaseBuilder() {
     }
   }, [release]);
 
-  // Effect to persist territories and services data
   useEffect(() => {
     if (id && releaseData) {
       const updateRelease = async () => {
@@ -256,6 +263,7 @@ export default function ReleaseBuilder() {
           status={releaseData?.status || "In Progress"}
           currentSection={currentSection}
           onSectionChange={setCurrentSection}
+          sections={sections}
         />
         <main className="flex-1 overflow-y-auto">
           {renderSection()}
