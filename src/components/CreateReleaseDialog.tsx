@@ -73,7 +73,12 @@ export function CreateReleaseDialog() {
   }, [availableReleaseTypes, releaseType]);
 
   const handleCreateRelease = async () => {
-    if (!releaseType || !format || !releaseName || !releaseNo) {
+    if (releaseType === "Physical") {
+      navigate("/physical-requests");
+      return;
+    }
+
+    if (!releaseType || (!format && releaseType === "Digital") || !releaseName || !releaseNo) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -97,7 +102,7 @@ export function CreateReleaseDialog() {
           release_name: releaseName,
           upc: hasUPC ? upcNumber : null,
           catalog_number: releaseNo,
-          format,
+          format: releaseType === "Music Video" ? "Music Video" : format,
           status: "In Progress",
           created_by: user.id,
         })
@@ -112,6 +117,15 @@ export function CreateReleaseDialog() {
         title: "Success",
         description: "Release created successfully",
       });
+
+      // Navigate to appropriate builder based on release type
+      if (releaseType === "Music Video") {
+        toast({
+          title: "Coming Soon",
+          description: "Music Video Release Builder is under development",
+        });
+        return;
+      }
 
       navigate(`/release-builder/${release.id}`);
     } catch (error) {
@@ -161,109 +175,114 @@ export function CreateReleaseDialog() {
                   </Button>
                 );
               })}
-              {isLoadingRoles && (
-                <div className="w-full text-center text-muted-foreground">
-                  Loading available release types...
+            </div>
+          </div>
+
+          {releaseType === "Physical" ? (
+            <Button
+              className="w-full"
+              onClick={handleCreateRelease}
+            >
+              Fill the Physical Request
+            </Button>
+          ) : (
+            <>
+              {/* Format - Only show for Digital releases */}
+              {releaseType === "Digital" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Format *</label>
+                  <div className="flex gap-4">
+                    {["Album/Full Length", "EP", "Single"].map((formatOption) => (
+                      <Button
+                        key={formatOption}
+                        variant={format === formatOption ? "default" : "outline"}
+                        className={cn(
+                          "flex-1",
+                          format === formatOption ? "bg-primary text-primary-foreground" : ""
+                        )}
+                        onClick={() => setFormat(formatOption as ReleaseFormat)}
+                      >
+                        {formatOption}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
-              {rolesError && (
-                <div className="w-full text-center text-destructive">
-                  Error loading release types. Please try again.
+
+              {/* Release Name */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Release Name *</label>
+                <Input
+                  placeholder="Enter release name"
+                  value={releaseName}
+                  onChange={(e) => setReleaseName(e.target.value)}
+                />
+              </div>
+
+              {/* Release No. */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Catalog No. *</label>
+                <Input
+                  placeholder="AAM003"
+                  value={releaseNo}
+                  onChange={(e) => setReleaseNo(e.target.value)}
+                />
+              </div>
+
+              {/* Release Version - Only show for Digital releases */}
+              {releaseType === "Digital" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Release Version</label>
+                  <Input
+                    placeholder="Enter release version (optional)"
+                    value={releaseVersion}
+                    onChange={(e) => setReleaseVersion(e.target.value)}
+                  />
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Format */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Format *</label>
-            <div className="flex gap-4">
-              {["Album/Full Length", "EP", "Single"].map((formatOption) => (
-                <Button
-                  key={formatOption}
-                  variant={format === formatOption ? "default" : "outline"}
-                  className={cn(
-                    "flex-1",
-                    format === formatOption ? "bg-primary text-primary-foreground" : ""
-                  )}
-                  onClick={() => setFormat(formatOption as ReleaseFormat)}
-                >
-                  {formatOption}
-                </Button>
-              ))}
-            </div>
-          </div>
+              {/* UPC */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">UPC *</label>
+                <div className="flex gap-4">
+                  <Button
+                    variant={!hasUPC ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => {
+                      setHasUPC(false);
+                      setUpcNumber("");
+                    }}
+                  >
+                    Assign one for me
+                  </Button>
+                  <Button
+                    variant={hasUPC ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setHasUPC(true)}
+                  >
+                    I already have one
+                  </Button>
+                </div>
+                {hasUPC && (
+                  <Input
+                    placeholder="Enter UPC number"
+                    value={upcNumber}
+                    onChange={(e) => setUpcNumber(e.target.value)}
+                    className="mt-2"
+                  />
+                )}
+              </div>
 
-          {/* Release Name */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Release Name *</label>
-            <Input
-              placeholder="Enter release name"
-              value={releaseName}
-              onChange={(e) => setReleaseName(e.target.value)}
-            />
-          </div>
-
-          {/* Release No. */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Catalog No. *</label>
-            <Input
-              placeholder="AAM003"
-              value={releaseNo}
-              onChange={(e) => setReleaseNo(e.target.value)}
-            />
-          </div>
-
-          {/* Release Version */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Release Version</label>
-            <Input
-              placeholder="Enter release version (optional)"
-              value={releaseVersion}
-              onChange={(e) => setReleaseVersion(e.target.value)}
-            />
-          </div>
-
-          {/* UPC */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">UPC *</label>
-            <div className="flex gap-4">
+              {/* Create Release Button */}
               <Button
-                variant={!hasUPC ? "default" : "outline"}
-                className="flex-1"
-                onClick={() => {
-                  setHasUPC(false);
-                  setUpcNumber("");
-                }}
+                className="w-full"
+                onClick={handleCreateRelease}
+                disabled={!releaseType || (!format && releaseType === "Digital") || !releaseName || !releaseNo || isLoading}
               >
-                Assign one for me
+                {isLoading ? "Creating..." : "Create Release"}
               </Button>
-              <Button
-                variant={hasUPC ? "default" : "outline"}
-                className="flex-1"
-                onClick={() => setHasUPC(true)}
-              >
-                I already have one
-              </Button>
-            </div>
-            {hasUPC && (
-              <Input
-                placeholder="Enter UPC number"
-                value={upcNumber}
-                onChange={(e) => setUpcNumber(e.target.value)}
-                className="mt-2"
-              />
-            )}
-          </div>
-
-          {/* Create Release Button */}
-          <Button
-            className="w-full"
-            onClick={handleCreateRelease}
-            disabled={!releaseType || !format || !releaseName || !releaseNo || isLoading}
-          >
-            {isLoading ? "Creating..." : "Create Release"}
-          </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
