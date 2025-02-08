@@ -1,3 +1,4 @@
+
 import { Circle } from "lucide-react";
 import {
   Sidebar,
@@ -10,7 +11,7 @@ import {
 import { Database } from "@/integrations/supabase/types";
 
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
-type ReleaseSection = "basic-info" | "artwork" | "tracks" | "scheduling" | "territories" | "publishing" | "overview";
+export type ReleaseSection = "basic-info" | "thumbnail" | "video" | "scheduling" | "territories" | "overview";
 
 interface ReleaseBuilderSidebarProps {
   releaseName: string;
@@ -18,6 +19,7 @@ interface ReleaseBuilderSidebarProps {
   status: ReleaseStatus;
   currentSection: ReleaseSection;
   onSectionChange: (section: ReleaseSection) => void;
+  sections: { id: ReleaseSection; label: string }[];
 }
 
 const getStatusColor = (status: ReleaseStatus) => {
@@ -43,17 +45,8 @@ export function ReleaseBuilderSidebar({
   status,
   currentSection,
   onSectionChange,
+  sections,
 }: ReleaseBuilderSidebarProps) {
-  const sections: { id: ReleaseSection; label: string }[] = [
-    { id: "basic-info", label: "Basic Info" },
-    { id: "artwork", label: "Artwork" },
-    { id: "tracks", label: "Tracks" },
-    { id: "scheduling", label: "Scheduling and Pricing" },
-    { id: "territories", label: "Territories and Services" },
-    { id: "publishing", label: "Publishing" },
-    { id: "overview", label: "Overview" },
-  ];
-
   return (
     <Sidebar>
       <SidebarContent>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -13,9 +12,8 @@ import { MusicVideoOverview } from "@/components/release-builder/MusicVideoOverv
 import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { ReleaseSection } from "@/components/ReleaseBuilderSidebar";
 
-// Define the ReleaseSection type to match both components
-export type ReleaseSection = "basic-info" | "thumbnail" | "video" | "scheduling" | "territories" | "overview";
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 
 // Define the type for release data
@@ -255,7 +253,7 @@ export default function MusicVideoReleaseBuilder() {
           upc={releaseData?.upc}
           status={releaseData?.status || "In Progress"}
           currentSection={currentSection}
-          onSectionChange={(section: ReleaseSection) => setCurrentSection(section)}
+          onSectionChange={setCurrentSection}
           sections={sections}
         />
         <main className="flex-1 overflow-y-auto">
