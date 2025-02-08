@@ -92,6 +92,7 @@ export type Database = {
           subgenre: string | null
           upc: string | null
           updated_at: string | null
+          video_url: string | null
         }
         Insert: {
           artwork_url?: string | null
@@ -121,6 +122,7 @@ export type Database = {
           subgenre?: string | null
           upc?: string | null
           updated_at?: string | null
+          video_url?: string | null
         }
         Update: {
           artwork_url?: string | null
@@ -150,6 +152,7 @@ export type Database = {
           subgenre?: string | null
           upc?: string | null
           updated_at?: string | null
+          video_url?: string | null
         }
         Relationships: []
       }

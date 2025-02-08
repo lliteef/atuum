@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -17,8 +16,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 type ReleaseSection = "basic-info" | "thumbnail" | "video" | "scheduling" | "territories" | "overview";
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 
-export interface MusicVideoReleaseData {
-  id?: string;
+export interface MusicVideoReleaseData extends Database["public"]["Tables"]["releases"]["Row"] {
   release_name: string;
   upc?: string;
   catalog_number?: string;
@@ -170,8 +168,6 @@ export default function MusicVideoReleaseBuilder() {
             initialData={{ artworkUrl: releaseData?.thumbnail_url }}
             onArtworkUpdate={(url) => handleUpdateReleaseData({ thumbnail_url: url })}
             onNext={() => setCurrentSection("video")}
-            title="Thumbnail"
-            description="Upload your video thumbnail"
           />
         );
       case "video":
