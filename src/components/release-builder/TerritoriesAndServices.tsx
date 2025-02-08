@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,28 +29,14 @@ const territories = [
   "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-// List of major music streaming services
+// Updated list of music video services
 const streamingServices = [
-  "Spotify",
   "Apple Music",
-  "Amazon Music",
-  "YouTube Music",
-  "Pandora",
-  "Deezer",
-  "Tidal",
-  "SoundCloud",
-  "iHeartRadio",
-  "TikTok",
-  "Instagram/Facebook",
-  "Beatport",
-  "Traxsource",
-  "Bandcamp",
-  "NetEase Cloud Music",
-  "QQ Music",
+  "VK / OK / BOOM",
   "Yandex Music",
-  "JioSaavn",
-  "Anghami",
-  "Boomplay"
+  "YouTube Content ID",
+  "Tidal",
+  "TikTok"
 ];
 
 interface TerritoriesAndServicesProps {
@@ -61,14 +46,20 @@ interface TerritoriesAndServicesProps {
   };
   onUpdateData: (data: { selectedTerritories: string[], selectedServices: string[] }) => void;
   onNext: () => void;
+  serviceList?: string[];
 }
 
-export function TerritoriesAndServices({ initialData, onUpdateData, onNext }: TerritoriesAndServicesProps) {
+export function TerritoriesAndServices({ 
+  initialData, 
+  onUpdateData, 
+  onNext,
+  serviceList = streamingServices // Use the updated list as default
+}: TerritoriesAndServicesProps) {
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(
     initialData?.selectedTerritories || territories
   );
   const [selectedServices, setSelectedServices] = useState<string[]>(
-    initialData?.selectedServices || streamingServices
+    initialData?.selectedServices || serviceList
   );
 
   // Effect to notify parent of changes
@@ -105,7 +96,7 @@ export function TerritoriesAndServices({ initialData, onUpdateData, onNext }: Te
   };
 
   const selectAllServices = () => {
-    setSelectedServices(streamingServices);
+    setSelectedServices(serviceList);
   };
 
   const deselectAllServices = () => {
@@ -162,7 +153,7 @@ export function TerritoriesAndServices({ initialData, onUpdateData, onNext }: Te
         {/* Services Section */}
         <Card className="p-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Music Streaming Services</h3>
+            <h3 className="text-lg font-semibold">Music Video Services</h3>
             <div className="space-x-2">
               <Button
                 variant="outline"
@@ -182,7 +173,7 @@ export function TerritoriesAndServices({ initialData, onUpdateData, onNext }: Te
           </div>
           <ScrollArea className="h-[400px] rounded-md border p-4">
             <div className="space-y-2">
-              {streamingServices.map((service) => (
+              {serviceList.map((service) => (
                 <div key={service} className="flex items-center space-x-2">
                   <Checkbox
                     id={`service-${service}`}

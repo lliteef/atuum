@@ -203,9 +203,12 @@ export default function MusicVideoReleaseBuilder() {
             onUpdateData={setTerritoriesAndServicesData}
             onNext={() => setCurrentSection("overview")}
             serviceList={[
-              "YouTube Music",
+              "Apple Music",
+              "VK / OK / BOOM",
+              "Yandex Music",
+              "YouTube Content ID",
+              "Tidal",
               "TikTok",
-              "Instagram/Facebook",
             ]}
           />
         );
