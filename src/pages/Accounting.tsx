@@ -4,7 +4,7 @@ import { DollarSign, CreditCard, Wallet } from "lucide-react";
 
 export default function Accounting() {
   useEffect(() => {
-    document.title = "Accounting | IMG";
+    document.title = "Accounting | Igniter Music Group";
   }, []);
 
   return (
