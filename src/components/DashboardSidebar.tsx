@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { BarChart2, Cog, Home, Disc, Archive, Trash2, Rocket } from "lucide-react";
+import { BarChart2, Cog, Home, Disc, Archive, Trash2, Rocket, Landmark } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +62,11 @@ export function DashboardSidebar() {
       path: "/insights",
     },
     {
+      title: "Accounting",
+      icon: Landmark,
+      path: "/accounting",
+    },
+    {
       title: "Settings",
       icon: Cog,
       path: "/settings",
@@ -83,6 +88,11 @@ export function DashboardSidebar() {
       title: "Insights",
       icon: BarChart2,
       path: "/insights",
+    },
+    {
+      title: "Accounting",
+      icon: Landmark,
+      path: "/accounting",
     },
     {
       title: "Settings",
