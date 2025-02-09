@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { BarChart2, Cog, Home, Disc, Archive, Trash2, Rocket, Landmark } from "lucide-react";
+import { BarChart2, Settings, Home, Disc3, Archive, Trash2, Rocket, Landmark } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +38,7 @@ export function DashboardSidebar() {
     },
     {
       title: "Physical Requests",
-      icon: Disc,
+      icon: Disc3,
       path: "/physical-requests",
     },
     {
@@ -68,7 +68,7 @@ export function DashboardSidebar() {
     },
     {
       title: "Settings",
-      icon: Cog,
+      icon: Settings,
       path: "/settings",
     },
   ];
