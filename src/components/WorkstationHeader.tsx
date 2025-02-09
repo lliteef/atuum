@@ -97,7 +97,7 @@ export function WorkstationHeader() {
             alt="Logo" 
             className="h-8 w-8 object-cover rounded"
           />
-          <h1 className="text-xl font-semibold">Dashboard</h1>
+          <h1 className="text-xl font-semibold">Workstation</h1>
         </div>
         
         <div className="flex items-center gap-4">
