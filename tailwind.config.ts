@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -22,11 +23,11 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: "#2A2D3E",
+        foreground: "#FFFFFF",
         primary: {
-          DEFAULT: "#6D28D9",
-          foreground: "#FFFFFF",
+          DEFAULT: "#2DD4BF",
+          foreground: "#0F172A",
         },
         secondary: {
           DEFAULT: "#60A5FA",
@@ -41,12 +42,12 @@ export default {
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#374151",
+          foreground: "#9CA3AF",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#1F2937",
+          foreground: "#FFFFFF",
         },
         card: {
           DEFAULT: "#1E293B",
@@ -54,9 +55,9 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0.75rem",
+        md: "0.5rem",
+        sm: "0.25rem",
       },
       keyframes: {
         "accordion-down": {
