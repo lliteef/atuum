@@ -12,7 +12,7 @@ import { UserPlus } from "lucide-react";
 
 export default function Settings() {
   useEffect(() => {
-    document.title = "Settings | IMG";
+    document.title = "Settings | Igniter Music Group";
   }, []);
 
   const [firstName, setFirstName] = useState("");
