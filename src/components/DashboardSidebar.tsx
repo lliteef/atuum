@@ -96,7 +96,7 @@ export function DashboardSidebar() {
     },
     {
       title: "Settings",
-      icon: Cog,
+      icon: Settings,
       path: "/settings",
     },
   ];
