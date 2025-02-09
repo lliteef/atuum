@@ -4,7 +4,7 @@ import { BarChart2, TrendingUp, Music2, Users } from "lucide-react";
 
 export default function Insights() {
   useEffect(() => {
-    document.title = "Insights | IMG";
+    document.title = "Insights | Igniter Music Group";
   }, []);
 
   return (
