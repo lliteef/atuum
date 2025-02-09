@@ -52,17 +52,17 @@ export function DashboardSidebar() {
       path: "/taken-down-content",
     },
     {
-      title: "Marketing",
+      title: "Marketing Requests",
       icon: Rocket,
       path: "/fansifter",
     },
     {
-      title: "Insights",
+      title: "Insights Reports",
       icon: BarChart2,
       path: "/insights",
     },
     {
-      title: "Accounting",
+      title: "Accounting Reports",
       icon: Landmark,
       path: "/accounting",
     },
