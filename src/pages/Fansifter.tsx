@@ -5,7 +5,7 @@ import { Link2, Share2, Target, Megaphone } from "lucide-react";
 
 export default function Fansifter() {
   useEffect(() => {
-    document.title = "Marketing | IMG";
+    document.title = "Marketing | Igniter Music Group";
   }, []);
 
   return (
