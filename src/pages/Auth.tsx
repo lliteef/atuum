@@ -11,7 +11,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 const Auth = () => {
   useEffect(() => {
-    document.title = "Sign In | IMG";
+    document.title = "Auth | Igniter Music Group";
   }, []);
 
   const [email, setEmail] = useState("");
