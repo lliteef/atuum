@@ -36,7 +36,7 @@ export default function Workstation() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Workstation | IMG";
+    document.title = "Workstation | Igniter Music Group";
   }, []);
 
   const { data: userRoles } = useQuery({
