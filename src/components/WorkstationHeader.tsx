@@ -93,7 +93,7 @@ export function WorkstationHeader() {
       <div className="flex items-center justify-between px-6 h-16">
         <div className="flex items-center gap-4">
           <img 
-            src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d" 
+            src="/lovable-uploads/bb145916-30b9-494a-b432-d1264ccf0c21.png" 
             alt="Logo" 
             className="h-8 w-8 object-cover rounded"
           />
