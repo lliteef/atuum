@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -104,6 +103,7 @@ export default function ReleaseBuilder() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState("basic-info");
+  // Fix the type of sectionRefs to explicitly be a Record of HTMLDivElement
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   // Form state
@@ -213,7 +213,7 @@ export default function ReleaseBuilder() {
     },
     enabled: !!id,
   });
-
+  
   // Scroll to section
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -303,7 +303,7 @@ export default function ReleaseBuilder() {
       tracks: releaseData.tracks?.filter(track => track.id !== trackId)
     });
   };
-
+  
   // Save release
   const saveRelease = async () => {
     try {
