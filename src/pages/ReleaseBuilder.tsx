@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -125,6 +124,41 @@ export default function ReleaseBuilder() {
   const [currentFeaturedArtist, setCurrentFeaturedArtist] = useState("");
   const [expandedTracks, setExpandedTracks] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use an Intersection Observer to update the active section based on scroll position
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionId = entry.target.id;
+            setActiveSection(sectionId);
+          }
+        });
+      },
+      { 
+        threshold: 0.3, // How much of the section needs to be visible
+        rootMargin: '-100px 0px -100px 0px' // Adjust this to change when sections become active
+      }
+    );
+
+    // Observe all section elements
+    Object.keys(sectionRefs.current).forEach((sectionId) => {
+      const element = sectionRefs.current[sectionId];
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      Object.keys(sectionRefs.current).forEach((sectionId) => {
+        const element = sectionRefs.current[sectionId];
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+    };
+  }, [sectionRefs.current]);
 
   // Helper function to convert database track format to our Track type
   const convertDbTrackToTrack = (dbTrack: any): Track => {
@@ -456,8 +490,8 @@ export default function ReleaseBuilder() {
 
   return (
     <div className="flex min-h-screen bg-[#1A1F2C] text-white">
-      {/* Navigation Sidebar */}
-      <aside className="w-64 border-r border-[#333] flex flex-col bg-[#121620]">
+      {/* Persistent Sidebar */}
+      <div className="w-64 sticky top-0 h-screen overflow-auto bg-[#121620] border-l border-[#333] flex flex-col">
         <div className="p-6 border-b border-[#333]">
           <h1 className="text-xl font-semibold">{releaseData.release_name || "New Release"}</h1>
           <p className="text-sm text-[#8E9196] mt-1">{releaseData.upc || "UPC will be assigned"}</p>
@@ -493,7 +527,7 @@ export default function ReleaseBuilder() {
             {isSubmitting ? "Saving..." : "Save Release"}
           </Button>
         </div>
-      </aside>
+      </div>
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-8">
