@@ -1,19 +1,27 @@
 
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ReleaseBuilderSidebar, ReleaseSection } from "@/components/ReleaseBuilderSidebar";
-import { BasicInfo } from "@/components/release-builder/BasicInfo";
-import { Artwork } from "@/components/release-builder/Artwork";
-import { Tracks } from "@/components/release-builder/Tracks";
-import { Scheduling } from "@/components/release-builder/Scheduling";
-import { TerritoriesAndServices } from "@/components/release-builder/TerritoriesAndServices";
-import { Publishing } from "@/components/release-builder/Publishing";
-import { Overview } from "@/components/release-builder/Overview";
 import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown, ChevronUp, X, Upload, Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { type Track } from "@/types/track";
 
 type ReleaseStatus = Database["public"]["Enums"]["release_status"];
 
@@ -41,31 +49,83 @@ export interface ReleaseData {
   publishing_type?: string;
   publisher_name?: string;
   status?: ReleaseStatus;
-  tracks?: any[];
+  tracks?: Track[];
 }
+
+const sections = [
+  { id: "basic-info", label: "Basic Info" },
+  { id: "artwork", label: "Artwork" },
+  { id: "tracks", label: "Tracks" },
+  { id: "scheduling", label: "Scheduling" },
+  { id: "territories", label: "Territories" },
+  { id: "publishing", label: "Publishing" }
+];
+
+// Language options
+const languages = [
+  { value: "en", label: "English" },
+  { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "it", label: "Italian" },
+  { value: "pt", label: "Portuguese" },
+  { value: "ru", label: "Russian" },
+  { value: "ja", label: "Japanese" },
+  { value: "zh", label: "Chinese" },
+  { value: "ko", label: "Korean" },
+];
+
+const genres = [
+  "Pop", "Rock", "Hip-Hop", "R&B", "Electronic", 
+  "Classical", "Jazz", "Country", "Folk", "Latin"
+];
+
+const subgenres = [
+  "Alternative Rock", "Indie Pop", "Trap", "Soul", "House",
+  "Techno", "Chamber Music", "Bebop", "Bluegrass", "Traditional"
+];
+
+const formats = ["Single", "EP", "Album/Full Length", "Music Video"];
+
+const territories = [
+  "Worldwide", "United States", "Europe", "Asia", 
+  "Latin America", "Africa", "Australia", "Canada", 
+  "United Kingdom", "Japan", "South Korea", "Brazil"
+];
+
+const services = [
+  "Spotify", "Apple Music", "YouTube Music", "Amazon Music", 
+  "Deezer", "Tidal", "Pandora", "SoundCloud", "TikTok", 
+  "Instagram/Facebook", "Beatport", "Bandcamp"
+];
 
 export default function ReleaseBuilder() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [currentSection, setCurrentSection] = useState<ReleaseSection>("basic-info");
-  const [releaseName, setReleaseName] = useState<string>("");
-  const [releaseData, setReleaseData] = useState<ReleaseData | null>(null);
-  const [territoriesAndServicesData, setTerritoriesAndServicesData] = useState<{
-    selectedTerritories: string[];
-    selectedServices: string[];
-  }>({ selectedTerritories: [], selectedServices: [] });
+  const [activeSection, setActiveSection] = useState("basic-info");
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  
+  // Form state
+  const [releaseData, setReleaseData] = useState<ReleaseData>({
+    release_name: "",
+    format: "single",
+    metadata_language: "en",
+    primary_artists: [],
+    featured_artists: [],
+    selected_territories: ["Worldwide"],
+    selected_services: [],
+    tracks: [],
+  });
+  
+  // UI state
+  const [currentPrimaryArtist, setCurrentPrimaryArtist] = useState("");
+  const [currentFeaturedArtist, setCurrentFeaturedArtist] = useState("");
+  const [expandedTracks, setExpandedTracks] = useState<Record<string, boolean>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const sections: { id: ReleaseSection; label: string }[] = [
-    { id: "basic-info", label: "Basic Info" },
-    { id: "artwork", label: "Artwork" },
-    { id: "tracks", label: "Tracks" },
-    { id: "scheduling", label: "Scheduling and Pricing" },
-    { id: "territories", label: "Territories and Services" },
-    { id: "publishing", label: "Publishing" },
-    { id: "overview", label: "Overview" },
-  ];
-
-  const { data: release, isLoading, error } = useQuery({
+  // Fetch release data if editing
+  const { isLoading, error } = useQuery({
     queryKey: ['release', id],
     queryFn: async () => {
       if (!id) throw new Error('No release ID provided');
@@ -95,185 +155,1032 @@ export default function ReleaseBuilder() {
         throw new Error('Release not found');
       }
 
+      setReleaseData(data);
       return data;
     },
     enabled: !!id,
   });
 
-  useEffect(() => {
-    if (release) {
-      setReleaseData(release);
-      setReleaseName(release.release_name);
-      setTerritoriesAndServicesData({
-        selectedTerritories: release.selected_territories || [],
-        selectedServices: release.selected_services || [],
-      });
-    }
-  }, [release]);
+  // Also fetch tracks for this release
+  useQuery({
+    queryKey: ['release-tracks', id],
+    queryFn: async () => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('tracks')
+        .select('*')
+        .eq('release_id', id);
 
-  useEffect(() => {
-    if (id && releaseData) {
-      const updateRelease = async () => {
+      if (error) {
+        console.error('Error loading tracks:', error);
+        return [];
+      }
+
+      if (data && data.length > 0) {
+        setReleaseData(prev => ({ ...prev, tracks: data }));
+      }
+      
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Scroll to section
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = sectionRefs.current[sectionId];
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Form change handlers
+  const updateReleaseData = (data: Partial<ReleaseData>) => {
+    setReleaseData(prev => ({ ...prev, ...data }));
+  };
+
+  const handleAddPrimaryArtist = () => {
+    if (currentPrimaryArtist.trim()) {
+      const primaryArtists = [...(releaseData.primary_artists || []), currentPrimaryArtist.trim()];
+      updateReleaseData({ primary_artists: primaryArtists });
+      setCurrentPrimaryArtist("");
+    }
+  };
+
+  const handleAddFeaturedArtist = () => {
+    if (currentFeaturedArtist.trim()) {
+      const featuredArtists = [...(releaseData.featured_artists || []), currentFeaturedArtist.trim()];
+      updateReleaseData({ featured_artists: featuredArtists });
+      setCurrentFeaturedArtist("");
+    }
+  };
+
+  const removePrimaryArtist = (artist: string) => {
+    updateReleaseData({
+      primary_artists: releaseData.primary_artists?.filter(a => a !== artist)
+    });
+  };
+
+  const removeFeaturedArtist = (artist: string) => {
+    updateReleaseData({
+      featured_artists: releaseData.featured_artists?.filter(a => a !== artist)
+    });
+  };
+
+  const toggleTrackExpansion = (trackId: string) => {
+    setExpandedTracks(prev => ({
+      ...prev,
+      [trackId]: !prev[trackId]
+    }));
+  };
+
+  const addNewTrack = () => {
+    const newTrack: Track = {
+      id: `temp-${Date.now()}`,
+      title: "",
+      autoAssignIsrc: true,
+      lyricsLanguage: releaseData.metadata_language || "en",
+      explicitContent: "None",
+      primaryArtists: releaseData.primary_artists || [],
+      featuredArtists: [],
+      remixers: [],
+      songwriters: [],
+      producers: [],
+      additionalContributors: [],
+      pLine: "",
+    };
+    
+    updateReleaseData({
+      tracks: [...(releaseData.tracks || []), newTrack]
+    });
+    
+    // Auto-expand the new track
+    setExpandedTracks(prev => ({
+      ...prev,
+      [newTrack.id]: true
+    }));
+  };
+
+  const updateTrack = (trackId: string, updatedData: Partial<Track>) => {
+    updateReleaseData({
+      tracks: releaseData.tracks?.map(track => 
+        track.id === trackId ? { ...track, ...updatedData } : track
+      )
+    });
+  };
+
+  const removeTrack = (trackId: string) => {
+    updateReleaseData({
+      tracks: releaseData.tracks?.filter(track => track.id !== trackId)
+    });
+  };
+
+  // Save release
+  const saveRelease = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      // Validate required fields
+      if (!releaseData.release_name) {
+        toast({
+          title: "Missing information",
+          description: "Please enter a release name",
+          variant: "destructive",
+        });
+        scrollToSection("basic-info");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!releaseData.primary_artists?.length) {
+        toast({
+          title: "Missing information",
+          description: "Please add at least one primary artist",
+          variant: "destructive",
+        });
+        scrollToSection("basic-info");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!releaseData.tracks?.length) {
+        toast({
+          title: "Missing information",
+          description: "Please add at least one track",
+          variant: "destructive",
+        });
+        scrollToSection("tracks");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create or update release in database
+      let releaseId = id;
+      
+      if (!releaseId) {
+        // Create new release
+        const { data, error } = await supabase
+          .from('releases')
+          .insert(releaseData)
+          .select('id')
+          .single();
+          
+        if (error) throw error;
+        releaseId = data.id;
+      } else {
+        // Update existing release
         const { error } = await supabase
           .from('releases')
-          .update({
-            selected_territories: territoriesAndServicesData.selectedTerritories,
-            selected_services: territoriesAndServicesData.selectedServices,
-          })
-          .eq('id', id);
-
-        if (error) {
-          console.error('Error updating territories and services:', error);
-          toast({
-            title: "Error",
-            description: "Failed to save territories and services",
-            variant: "destructive",
-          });
+          .update(releaseData)
+          .eq('id', releaseId);
+          
+        if (error) throw error;
+      }
+      
+      // Handle tracks
+      if (releaseData.tracks?.length) {
+        // Process each track
+        for (const track of releaseData.tracks) {
+          const isNewTrack = track.id.startsWith('temp-');
+          
+          if (isNewTrack) {
+            // Create new track
+            const { id, ...trackData } = track;
+            await supabase
+              .from('tracks')
+              .insert({
+                ...trackData,
+                release_id: releaseId
+              });
+          } else {
+            // Update existing track
+            await supabase
+              .from('tracks')
+              .update(track)
+              .eq('id', track.id);
+          }
         }
-      };
+      }
 
-      updateRelease();
+      toast({
+        title: "Success",
+        description: "Release saved successfully",
+      });
+      
+      // Redirect to the releases page
+      navigate('/workstation');
+    } catch (error) {
+      console.error("Error saving release:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save release",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [territoriesAndServicesData, id]);
-
-  const handleUpdateReleaseData = (newData: Partial<ReleaseData>) => {
-    setReleaseData(prev => prev ? { ...prev, ...newData } : newData as ReleaseData);
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#1A1F2C]">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
+      <div className="flex items-center justify-center h-screen bg-[#1A1F2C]">
+        <div className="text-center text-white">
           <h2 className="text-2xl font-bold mb-2">Error Loading Release</h2>
-          <p className="text-muted-foreground">{error.message}</p>
+          <p className="text-[#8E9196]">{(error as Error).message}</p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => navigate('/workstation')}
+          >
+            Back to Workstation
+          </Button>
         </div>
       </div>
     );
   }
 
-  const handleSectionChange = (section: ReleaseSection) => {
-    setCurrentSection(section);
-  };
-
-  const renderSection = () => {
-    switch (currentSection) {
-      case "basic-info":
-        return (
-          <BasicInfo
-            initialData={{
-              releaseName: releaseData?.release_name || "",
-              upc: releaseData?.upc,
-              catalogNumber: releaseData?.catalog_number || "",
-              format: releaseData?.format || "single",
-              metadataLanguage: releaseData?.metadata_language,
-              primaryArtists: releaseData?.primary_artists,
-              featuredArtists: releaseData?.featured_artists,
-              genre: releaseData?.genre,
-              subgenre: releaseData?.subgenre,
-              label: releaseData?.label,
-              copyrightLine: releaseData?.copyright_line,
-            }}
-            onUpdateReleaseName={setReleaseName}
-            onNext={() => setCurrentSection("artwork")}
-          />
-        );
-      case "artwork":
-        return (
-          <Artwork
-            initialData={{ artworkUrl: releaseData?.artwork_url }}
-            onArtworkUpdate={(url) => handleUpdateReleaseData({ artwork_url: url })}
-            onNext={() => setCurrentSection("tracks")}
-          />
-        );
-      case "tracks":
-        return (
-          <Tracks
-            initialData={{
-              tracks: releaseData?.tracks || [],
-              releaseId: id,
-            }}
-            onTracksUpdate={(tracks) => handleUpdateReleaseData({ tracks })}
-            onNext={() => setCurrentSection("scheduling")}
-          />
-        );
-      case "scheduling":
-        return (
-          <Scheduling
-            initialData={{
-              releaseDate: releaseData?.release_date ? new Date(releaseData.release_date) : undefined,
-              salesStartDate: releaseData?.sales_start_date ? new Date(releaseData.sales_start_date) : undefined,
-              presaveOption: releaseData?.presave_option,
-              presaveDate: releaseData?.presave_date ? new Date(releaseData.presave_date) : undefined,
-              pricing: releaseData?.pricing,
-            }}
-            onSchedulingUpdate={(data) => handleUpdateReleaseData(data)}
-            onNext={() => setCurrentSection("territories")}
-          />
-        );
-      case "territories":
-        return (
-          <TerritoriesAndServices 
-            initialData={territoriesAndServicesData}
-            onUpdateData={setTerritoriesAndServicesData}
-            onNext={() => setCurrentSection("publishing")}
-          />
-        );
-      case "publishing":
-        return (
-          <Publishing
-            initialData={{
-              publishingType: releaseData?.publishing_type,
-              publisherName: releaseData?.publisher_name,
-            }}
-            onPublishingUpdate={(data) => handleUpdateReleaseData({
-              publishing_type: data.publishingType,
-              publisher_name: data.publisherName
-            })}
-            onNext={() => setCurrentSection("overview")}
-          />
-        );
-      case "overview":
-        return (
-          <Overview
-            releaseData={{
-              ...releaseData,
-              selected_territories: territoriesAndServicesData.selectedTerritories,
-              selected_services: territoriesAndServicesData.selectedServices,
-            }}
-            errors={[]}
-            onNext={() => {
-              toast({
-                title: "Success",
-                description: "Release submitted successfully",
-              });
-            }}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full bg-background">
-        <ReleaseBuilderSidebar
-          releaseName={releaseName}
-          upc={releaseData?.upc}
-          status={releaseData?.status || "In Progress"}
-          currentSection={currentSection}
-          onSectionChange={handleSectionChange}
-          sections={sections}
-        />
-        <main className="flex-1 overflow-y-auto">
-          {renderSection()}
-        </main>
-      </div>
-    </SidebarProvider>
+    <div className="flex min-h-screen bg-[#1A1F2C] text-white">
+      {/* Navigation Sidebar */}
+      <aside className="w-64 border-r border-[#333] flex flex-col bg-[#121620]">
+        <div className="p-6 border-b border-[#333]">
+          <h1 className="text-xl font-semibold">{releaseData.release_name || "New Release"}</h1>
+          <p className="text-sm text-[#8E9196] mt-1">{releaseData.upc || "UPC will be assigned"}</p>
+          <div className="flex items-center mt-3 text-sm">
+            <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
+            <span>In Progress</span>
+          </div>
+        </div>
+        <nav className="p-3 flex-1">
+          <ul className="space-y-1">
+            {sections.map((section) => (
+              <li key={section.id}>
+                <button
+                  onClick={() => scrollToSection(section.id)}
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors ${
+                    activeSection === section.id
+                      ? "bg-[#2DD4BF] text-[#0F172A] font-medium"
+                      : "hover:bg-[#333] text-[#E5E7EB]"
+                  }`}
+                >
+                  {section.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="p-4 border-t border-[#333]">
+          <Button
+            className="w-full bg-[#2DD4BF] hover:bg-[#22A89A] text-[#0F172A]"
+            onClick={saveRelease}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save Release"}
+          </Button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-3xl mx-auto space-y-16 pb-20">
+          {/* Basic Info Section */}
+          <section 
+            id="basic-info" 
+            ref={(el) => (sectionRefs.current["basic-info"] = el)}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Basic Info</h2>
+            
+            {/* Release Name */}
+            <div>
+              <Label htmlFor="release-name">Release Name</Label>
+              <Input
+                id="release-name"
+                value={releaseData.release_name}
+                onChange={(e) => updateReleaseData({ release_name: e.target.value })}
+                placeholder="Enter release name"
+                className="bg-[#222] border-[#333]"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* UPC */}
+              <div>
+                <Label htmlFor="upc">UPC</Label>
+                <Input
+                  id="upc"
+                  value={releaseData.upc || ""}
+                  disabled
+                  placeholder="Will be assigned automatically"
+                  className="bg-[#222] border-[#333]"
+                />
+              </div>
+              
+              {/* Catalog Number */}
+              <div>
+                <Label htmlFor="catalog-number">Catalog Number</Label>
+                <Input
+                  id="catalog-number"
+                  value={releaseData.catalog_number || ""}
+                  onChange={(e) => updateReleaseData({ catalog_number: e.target.value })}
+                  placeholder="Enter catalog number"
+                  className="bg-[#222] border-[#333]"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Format */}
+              <div>
+                <Label htmlFor="format">Format</Label>
+                <Select
+                  value={releaseData.format?.toLowerCase() || "single"}
+                  onValueChange={(value) => updateReleaseData({ format: value })}
+                >
+                  <SelectTrigger className="bg-[#222] border-[#333]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#222] border-[#333]">
+                    {formats.map((format) => (
+                      <SelectItem key={format} value={format.toLowerCase()}>
+                        {format}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Metadata Language */}
+              <div>
+                <Label htmlFor="metadata-language">Metadata Language</Label>
+                <Select
+                  value={releaseData.metadata_language || "en"}
+                  onValueChange={(value) => updateReleaseData({ metadata_language: value })}
+                >
+                  <SelectTrigger className="bg-[#222] border-[#333]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#222] border-[#333]">
+                    {languages.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {/* Primary Artists */}
+            <div>
+              <Label htmlFor="primary-artists">Primary Artist(s)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="primary-artists"
+                  value={currentPrimaryArtist}
+                  onChange={(e) => setCurrentPrimaryArtist(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddPrimaryArtist()}
+                  placeholder="Type artist name and press Enter"
+                  className="bg-[#222] border-[#333]"
+                />
+                <Button 
+                  onClick={handleAddPrimaryArtist}
+                  className="bg-[#2DD4BF] hover:bg-[#22A89A] text-[#0F172A]"
+                >
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {releaseData.primary_artists?.map((artist) => (
+                  <Badge key={artist} variant="secondary" className="bg-[#333] text-white">
+                    {artist}
+                    <X
+                      className="w-3 h-3 ml-1 cursor-pointer"
+                      onClick={() => removePrimaryArtist(artist)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            
+            {/* Featured Artists */}
+            <div>
+              <Label htmlFor="featured-artists">Featured Artist(s)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="featured-artists"
+                  value={currentFeaturedArtist}
+                  onChange={(e) => setCurrentFeaturedArtist(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddFeaturedArtist()}
+                  placeholder="Type artist name and press Enter"
+                  className="bg-[#222] border-[#333]"
+                />
+                <Button 
+                  onClick={handleAddFeaturedArtist}
+                  className="bg-[#2DD4BF] hover:bg-[#22A89A] text-[#0F172A]"
+                >
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {releaseData.featured_artists?.map((artist) => (
+                  <Badge key={artist} variant="secondary" className="bg-[#333] text-white">
+                    {artist}
+                    <X
+                      className="w-3 h-3 ml-1 cursor-pointer"
+                      onClick={() => removeFeaturedArtist(artist)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Genre */}
+              <div>
+                <Label htmlFor="genre">Genre</Label>
+                <Select
+                  value={releaseData.genre || ""}
+                  onValueChange={(value) => updateReleaseData({ genre: value })}
+                >
+                  <SelectTrigger className="bg-[#222] border-[#333]">
+                    <SelectValue placeholder="Select genre" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#222] border-[#333]">
+                    {genres.map((genre) => (
+                      <SelectItem key={genre} value={genre.toLowerCase()}>
+                        {genre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Subgenre */}
+              <div>
+                <Label htmlFor="subgenre">Subgenre</Label>
+                <Select
+                  value={releaseData.subgenre || ""}
+                  onValueChange={(value) => updateReleaseData({ subgenre: value })}
+                >
+                  <SelectTrigger className="bg-[#222] border-[#333]">
+                    <SelectValue placeholder="Select subgenre" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#222] border-[#333]">
+                    {subgenres.map((subgenre) => (
+                      <SelectItem key={subgenre} value={subgenre.toLowerCase()}>
+                        {subgenre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Label */}
+              <div>
+                <Label htmlFor="label">Label</Label>
+                <Input
+                  id="label"
+                  value={releaseData.label || ""}
+                  onChange={(e) => updateReleaseData({ label: e.target.value })}
+                  placeholder="Enter label name"
+                  className="bg-[#222] border-[#333]"
+                />
+              </div>
+              
+              {/* Copyright Line */}
+              <div>
+                <Label htmlFor="copyright">© Line</Label>
+                <Input
+                  id="copyright"
+                  value={releaseData.copyright_line || ""}
+                  onChange={(e) => updateReleaseData({ copyright_line: e.target.value })}
+                  placeholder="2025 Your Label"
+                  className="bg-[#222] border-[#333]"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Artwork Section */}
+          <section 
+            id="artwork" 
+            ref={(el) => (sectionRefs.current["artwork"] = el)}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Artwork</h2>
+            
+            <div className="bg-[#222] border border-[#333] rounded-lg p-8 text-center">
+              {releaseData.artwork_url ? (
+                <div className="space-y-4">
+                  <div className="relative w-64 h-64 mx-auto">
+                    <img 
+                      src={releaseData.artwork_url} 
+                      alt="Release artwork" 
+                      className="w-full h-full object-cover rounded-md" 
+                    />
+                    <button 
+                      className="absolute top-2 right-2 bg-black/70 p-1 rounded-full"
+                      onClick={() => updateReleaseData({ artwork_url: undefined })}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="w-64 h-64 mx-auto border-2 border-dashed border-[#444] rounded-md flex items-center justify-center bg-[#1A1F2C]">
+                    <Upload size={48} className="text-[#444]" />
+                  </div>
+                  <p className="text-[#8E9196]">
+                    Drag and drop or click to upload artwork image (3000x3000px)
+                  </p>
+                  <Button className="bg-[#333] hover:bg-[#444]">
+                    Upload Artwork
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Tracks Section */}
+          <section 
+            id="tracks" 
+            ref={(el) => (sectionRefs.current["tracks"] = el)}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Tracks</h2>
+            
+            <div className="space-y-4">
+              {releaseData.tracks && releaseData.tracks.length > 0 ? (
+                releaseData.tracks.map((track, index) => (
+                  <Card key={track.id} className="bg-[#222] border-[#333]">
+                    <CardContent className="p-0">
+                      <div 
+                        className="flex justify-between items-center p-4 cursor-pointer"
+                        onClick={() => toggleTrackExpansion(track.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-md bg-[#4F46E5] flex items-center justify-center text-sm">
+                            {index + 1}
+                          </div>
+                          <span className="font-medium">{track.title || "Untitled Track"}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <button 
+                            className="mr-2 text-red-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTrack(track.id);
+                            }}
+                          >
+                            <X size={18} />
+                          </button>
+                          {expandedTracks[track.id] ? (
+                            <ChevronUp size={20} />
+                          ) : (
+                            <ChevronDown size={20} />
+                          )}
+                        </div>
+                      </div>
+                      
+                      {expandedTracks[track.id] && (
+                        <div className="border-t border-[#333] p-4">
+                          <div className="space-y-4">
+                            {/* Track Title and Version */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor={`track-title-${track.id}`}>Track Title</Label>
+                                <Input
+                                  id={`track-title-${track.id}`}
+                                  value={track.title}
+                                  onChange={(e) => updateTrack(track.id, { title: e.target.value })}
+                                  placeholder="Enter track title"
+                                  className="bg-[#1A1F2C] border-[#333]"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`track-version-${track.id}`}>Version</Label>
+                                <Input
+                                  id={`track-version-${track.id}`}
+                                  value={track.version || ""}
+                                  onChange={(e) => updateTrack(track.id, { version: e.target.value })}
+                                  placeholder="Original Mix, Radio Edit, etc."
+                                  className="bg-[#1A1F2C] border-[#333]"
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* ISRC and Auto-assign */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor={`track-isrc-${track.id}`}>ISRC</Label>
+                                <Input
+                                  id={`track-isrc-${track.id}`}
+                                  value={track.isrc || ""}
+                                  onChange={(e) => updateTrack(track.id, { isrc: e.target.value })}
+                                  placeholder="Enter ISRC code"
+                                  disabled={track.autoAssignIsrc}
+                                  className="bg-[#1A1F2C] border-[#333]"
+                                />
+                              </div>
+                              <div className="flex items-center h-full pt-6">
+                                <Switch
+                                  id={`auto-isrc-${track.id}`}
+                                  checked={track.autoAssignIsrc}
+                                  onCheckedChange={(checked) => 
+                                    updateTrack(track.id, { autoAssignIsrc: checked })
+                                  }
+                                />
+                                <Label 
+                                  htmlFor={`auto-isrc-${track.id}`}
+                                  className="ml-2"
+                                >
+                                  Auto-assign ISRC
+                                </Label>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Language */}
+                              <div>
+                                <Label htmlFor={`track-language-${track.id}`}>Language</Label>
+                                <Select
+                                  value={track.lyricsLanguage || "en"}
+                                  onValueChange={(value) => 
+                                    updateTrack(track.id, { lyricsLanguage: value })
+                                  }
+                                >
+                                  <SelectTrigger 
+                                    id={`track-language-${track.id}`}
+                                    className="bg-[#1A1F2C] border-[#333]"
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-[#222] border-[#333]">
+                                    {languages.map((lang) => (
+                                      <SelectItem key={lang.value} value={lang.value}>
+                                        {lang.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              {/* Explicit Content */}
+                              <div>
+                                <Label htmlFor={`track-explicit-${track.id}`}>Explicit Content</Label>
+                                <Select
+                                  value={track.explicitContent}
+                                  onValueChange={(value) => 
+                                    updateTrack(track.id, { 
+                                      explicitContent: value as "None" | "Explicit" | "Clean" 
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger 
+                                    id={`track-explicit-${track.id}`}
+                                    className="bg-[#1A1F2C] border-[#333]"
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-[#222] border-[#333]">
+                                    <SelectItem value="None">None</SelectItem>
+                                    <SelectItem value="Explicit">Explicit</SelectItem>
+                                    <SelectItem value="Clean">Clean (Edited)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            
+                            {/* Lyrics */}
+                            <div>
+                              <Label htmlFor={`track-lyrics-${track.id}`}>Lyrics</Label>
+                              <Textarea
+                                id={`track-lyrics-${track.id}`}
+                                value={track.lyrics || ""}
+                                onChange={(e) => updateTrack(track.id, { lyrics: e.target.value })}
+                                placeholder="Enter track lyrics"
+                                className="bg-[#1A1F2C] border-[#333] min-h-[100px]"
+                              />
+                            </div>
+                            
+                            {/* Audio File */}
+                            <div className="bg-[#1A1F2C] border border-[#333] rounded-lg p-4 text-center">
+                              {track.audioUrl ? (
+                                <div className="flex justify-between items-center">
+                                  <div className="flex items-center">
+                                    <div className="w-10 h-10 bg-[#333] rounded-md flex items-center justify-center mr-4">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9 18V5l12-2v13"></path>
+                                        <circle cx="6" cy="18" r="3"></circle>
+                                        <circle cx="18" cy="16" r="3"></circle>
+                                      </svg>
+                                    </div>
+                                    <div className="text-left">
+                                      <p className="font-medium">{track.audioFilename || "track.wav"}</p>
+                                      <p className="text-sm text-[#8E9196]">Audio file</p>
+                                    </div>
+                                  </div>
+                                  <button 
+                                    className="text-red-500"
+                                    onClick={() => updateTrack(track.id, { 
+                                      audioUrl: undefined, 
+                                      audioFilename: undefined 
+                                    })}
+                                  >
+                                    <X size={20} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="w-full h-20 border-2 border-dashed border-[#444] rounded-md flex items-center justify-center bg-[#1A1F2C]">
+                                    <Upload size={24} className="text-[#444] mr-2" />
+                                    <span className="text-[#8E9196]">Upload audio file (WAV)</span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center text-[#8E9196] p-8">
+                  No tracks added yet. Add your first track below.
+                </div>
+              )}
+              
+              <Button 
+                onClick={addNewTrack} 
+                className="w-full bg-[#4F46E5] hover:bg-[#4338CA]"
+              >
+                <Plus size={16} className="mr-2" />
+                Add Track
+              </Button>
+            </div>
+          </section>
+
+          {/* Scheduling Section */}
+          <section 
+            id="scheduling" 
+            ref={(el) => (sectionRefs.current["scheduling"] = el)}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Scheduling and Pricing</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Release Date */}
+              <div>
+                <Label htmlFor="release-date">Release Date</Label>
+                <Input
+                  id="release-date"
+                  type="date"
+                  value={releaseData.release_date ? releaseData.release_date.split('T')[0] : ""}
+                  onChange={(e) => updateReleaseData({ release_date: e.target.value })}
+                  className="bg-[#222] border-[#333]"
+                />
+              </div>
+              
+              {/* Sales Start Date */}
+              <div>
+                <Label htmlFor="sales-start-date">Sales Start Date</Label>
+                <Input
+                  id="sales-start-date"
+                  type="date"
+                  value={releaseData.sales_start_date ? releaseData.sales_start_date.split('T')[0] : ""}
+                  onChange={(e) => updateReleaseData({ sales_start_date: e.target.value })}
+                  className="bg-[#222] border-[#333]"
+                />
+              </div>
+            </div>
+            
+            {/* Presave Options */}
+            <div className="space-y-3">
+              <Label>Presave Option</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroup
+                    value={releaseData.presave_option || "none"}
+                    onValueChange={(value) => updateReleaseData({ presave_option: value })}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="none" id="presave-none" />
+                      <Label htmlFor="presave-none">No Presave</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 mt-2">
+                      <RadioGroupItem value="release-date" id="presave-release" />
+                      <Label htmlFor="presave-release">Presave until Release Date</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 mt-2">
+                      <RadioGroupItem value="custom" id="presave-custom" />
+                      <Label htmlFor="presave-custom">Custom Presave Date</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
+                {releaseData.presave_option === "custom" && (
+                  <div>
+                    <Label htmlFor="presave-date">Presave End Date</Label>
+                    <Input
+                      id="presave-date"
+                      type="date"
+                      value={releaseData.presave_date ? releaseData.presave_date.split('T')[0] : ""}
+                      onChange={(e) => updateReleaseData({ presave_date: e.target.value })}
+                      className="bg-[#222] border-[#333]"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Pricing */}
+            <div>
+              <Label htmlFor="pricing">Pricing</Label>
+              <Select
+                value={releaseData.pricing || "standard"}
+                onValueChange={(value) => updateReleaseData({ pricing: value })}
+              >
+                <SelectTrigger className="bg-[#222] border-[#333]">
+                  <SelectValue placeholder="Select pricing option" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#222] border-[#333]">
+                  <SelectItem value="standard">Standard Pricing</SelectItem>
+                  <SelectItem value="premium">Premium Pricing</SelectItem>
+                  <SelectItem value="budget">Budget Pricing</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </section>
+
+          {/* Territories and Services Section */}
+          <section 
+            id="territories" 
+            ref={(el) => (sectionRefs.current["territories"] = el)}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Territories and Services</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Territories */}
+              <div className="space-y-3">
+                <Label>Territories</Label>
+                <div className="space-y-2 max-h-60 overflow-y-auto p-2 bg-[#222] rounded-md border border-[#333]">
+                  {territories.map((territory) => (
+                    <div key={territory} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`territory-${territory}`}
+                        className="h-4 w-4 rounded border-[#444] focus:ring-[#2DD4BF]"
+                        checked={releaseData.selected_territories?.includes(territory)}
+                        onChange={(e) => {
+                          const currentTerritories = [...(releaseData.selected_territories || [])];
+                          if (e.target.checked) {
+                            if (territory === "Worldwide") {
+                              updateReleaseData({ selected_territories: ["Worldwide"] });
+                            } else {
+                              const withoutWorldwide = currentTerritories.filter(t => t !== "Worldwide");
+                              updateReleaseData({ 
+                                selected_territories: [...withoutWorldwide, territory] 
+                              });
+                            }
+                          } else {
+                            updateReleaseData({
+                              selected_territories: currentTerritories.filter(t => t !== territory)
+                            });
+                          }
+                        }}
+                      />
+                      <Label 
+                        htmlFor={`territory-${territory}`}
+                        className="text-sm cursor-pointer"
+                      >
+                        {territory}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Services */}
+              <div className="space-y-3">
+                <Label>Services</Label>
+                <div className="space-y-2 max-h-60 overflow-y-auto p-2 bg-[#222] rounded-md border border-[#333]">
+                  {services.map((service) => (
+                    <div key={service} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`service-${service}`}
+                        className="h-4 w-4 rounded border-[#444] focus:ring-[#2DD4BF]"
+                        checked={releaseData.selected_services?.includes(service)}
+                        onChange={(e) => {
+                          const currentServices = [...(releaseData.selected_services || [])];
+                          if (e.target.checked) {
+                            updateReleaseData({ 
+                              selected_services: [...currentServices, service] 
+                            });
+                          } else {
+                            updateReleaseData({
+                              selected_services: currentServices.filter(s => s !== service)
+                            });
+                          }
+                        }}
+                      />
+                      <Label 
+                        htmlFor={`service-${service}`}
+                        className="text-sm cursor-pointer"
+                      >
+                        {service}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Publishing Section */}
+          <section 
+            id="publishing" 
+            ref={(el) => (sectionRefs.current["publishing"] = el)}
+            className="space-y-6"
+          >
+            <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Publishing</h2>
+            
+            <div className="space-y-4">
+              <RadioGroup
+                value={releaseData.publishing_type || "controlled"}
+                onValueChange={(value) => updateReleaseData({ publishing_type: value })}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="controlled" id="controlled" />
+                  <Label htmlFor="controlled">All rights controlled by me/label</Label>
+                </div>
+                
+                {releaseData.publishing_type === "controlled" && (
+                  <div className="ml-6 mt-2">
+                    <Label>Imprint/Label Name</Label>
+                    <Input 
+                      value={releaseData.label} 
+                      disabled 
+                      className="bg-[#222] border-[#333]" 
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center space-x-2 mt-3">
+                  <RadioGroupItem value="publisher" id="publisher" />
+                  <Label htmlFor="publisher">Published via Music Publisher</Label>
+                </div>
+                
+                {releaseData.publishing_type === "publisher" && (
+                  <div className="ml-6 mt-2">
+                    <Label>Publisher Name</Label>
+                    <Input
+                      value={releaseData.publisher_name || ""}
+                      onChange={(e) => updateReleaseData({ publisher_name: e.target.value })}
+                      placeholder="Enter publisher name"
+                      className="bg-[#222] border-[#333]"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center space-x-2 mt-3">
+                  <RadioGroupItem value="not-published" id="not-published" />
+                  <Label htmlFor="not-published">Not Published</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </section>
+          
+          {/* Submit Button */}
+          <div className="pt-6 pb-12">
+            <Button 
+              className="w-full bg-[#2DD4BF] hover:bg-[#22A89A] text-[#0F172A] text-lg py-6"
+              onClick={saveRelease}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Saving..." : "Save Release"}
+            </Button>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
-
