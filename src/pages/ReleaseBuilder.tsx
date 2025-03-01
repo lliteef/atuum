@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -103,7 +104,8 @@ export default function ReleaseBuilder() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState("basic-info");
-  // Fix the type of sectionRefs to explicitly be a Record of HTMLDivElement
+  
+  // Properly type sectionRefs to ensure they're HTMLDivElement elements
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   // Form state
@@ -499,7 +501,7 @@ export default function ReleaseBuilder() {
           {/* Basic Info Section */}
           <section 
             id="basic-info" 
-            ref={(el) => (sectionRefs.current["basic-info"] = el)}
+            ref={(el) => (sectionRefs.current["basic-info"] = el as HTMLDivElement)}
             className="space-y-6"
           >
             <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Basic Info</h2>
@@ -720,7 +722,7 @@ export default function ReleaseBuilder() {
           {/* Artwork Section */}
           <section 
             id="artwork" 
-            ref={(el) => (sectionRefs.current["artwork"] = el)}
+            ref={(el) => (sectionRefs.current["artwork"] = el as HTMLDivElement)}
             className="space-y-6"
           >
             <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Artwork</h2>
@@ -761,7 +763,7 @@ export default function ReleaseBuilder() {
           {/* Tracks Section */}
           <section 
             id="tracks" 
-            ref={(el) => (sectionRefs.current["tracks"] = el)}
+            ref={(el) => (sectionRefs.current["tracks"] = el as HTMLDivElement)}
             className="space-y-6"
           >
             <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Tracks</h2>
@@ -980,7 +982,7 @@ export default function ReleaseBuilder() {
           {/* Scheduling Section */}
           <section 
             id="scheduling" 
-            ref={(el) => (sectionRefs.current["scheduling"] = el)}
+            ref={(el) => (sectionRefs.current["scheduling"] = el as HTMLDivElement)}
             className="space-y-6"
           >
             <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Scheduling</h2>
@@ -1062,7 +1064,7 @@ export default function ReleaseBuilder() {
           {/* Territories Section */}
           <section 
             id="territories" 
-            ref={(el) => (sectionRefs.current["territories"] = el)}
+            ref={(el) => (sectionRefs.current["territories"] = el as HTMLDivElement)}
             className="space-y-6"
           >
             <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Territories & Services</h2>
@@ -1136,7 +1138,7 @@ export default function ReleaseBuilder() {
           {/* Publishing Section */}
           <section 
             id="publishing" 
-            ref={(el) => (sectionRefs.current["publishing"] = el)}
+            ref={(el) => (sectionRefs.current["publishing"] = el as HTMLDivElement)}
             className="space-y-6"
           >
             <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Publishing</h2>
