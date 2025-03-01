@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -921,4 +922,68 @@ export default function ReleaseBuilder() {
                                 {/* Explicit Content */}
                                 <div>
                                   <Label htmlFor={`track-explicit-${track.id}`}>Explicit Content</Label>
-                                  <
+                                  <RadioGroup
+                                    id={`track-explicit-${track.id}`}
+                                    value={track.explicitContent}
+                                    onValueChange={(value) => 
+                                      updateTrack(track.id, { 
+                                        explicitContent: value as "None" | "Explicit" | "Clean" 
+                                      })
+                                    }
+                                    className="flex space-x-4 pt-2"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="None" id={`none-${track.id}`} />
+                                      <Label htmlFor={`none-${track.id}`}>None</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="Explicit" id={`explicit-${track.id}`} />
+                                      <Label htmlFor={`explicit-${track.id}`}>Explicit</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value="Clean" id={`clean-${track.id}`} />
+                                      <Label htmlFor={`clean-${track.id}`}>Clean</Label>
+                                    </div>
+                                  </RadioGroup>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center p-8 bg-[#222] border border-[#333] rounded-lg">
+                    <p className="text-[#8E9196] mb-4">No tracks added yet</p>
+                    <Button 
+                      onClick={addNewTrack}
+                      className="bg-[#2DD4BF] hover:bg-[#22A89A] text-[#0F172A]"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Track
+                    </Button>
+                  </div>
+                )}
+                
+                {releaseData.tracks && releaseData.tracks.length > 0 && (
+                  <div className="text-center mt-4">
+                    <Button 
+                      onClick={addNewTrack}
+                      className="bg-[#2DD4BF] hover:bg-[#22A89A] text-[#0F172A]"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Another Track
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Add more sections as needed: scheduling, territories, publishing */}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
