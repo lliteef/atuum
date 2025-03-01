@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -105,10 +104,8 @@ export default function ReleaseBuilder() {
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState("basic-info");
   
-  // Properly type sectionRefs to ensure they're HTMLDivElement elements
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
-  // Form state
   const [releaseData, setReleaseData] = useState<ReleaseData>({
     release_name: "",
     format: "single",
@@ -120,13 +117,11 @@ export default function ReleaseBuilder() {
     tracks: [],
   });
   
-  // UI state
   const [currentPrimaryArtist, setCurrentPrimaryArtist] = useState("");
   const [currentFeaturedArtist, setCurrentFeaturedArtist] = useState("");
   const [expandedTracks, setExpandedTracks] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Use an Intersection Observer to update the active section based on scroll position
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -138,12 +133,11 @@ export default function ReleaseBuilder() {
         });
       },
       { 
-        threshold: 0.3, // How much of the section needs to be visible
-        rootMargin: '-100px 0px -100px 0px' // Adjust this to change when sections become active
+        threshold: 0.3, 
+        rootMargin: '-100px 0px -100px 0px'
       }
     );
 
-    // Observe all section elements
     Object.keys(sectionRefs.current).forEach((sectionId) => {
       const element = sectionRefs.current[sectionId];
       if (element) {
@@ -161,14 +155,13 @@ export default function ReleaseBuilder() {
     };
   }, [sectionRefs.current]);
 
-  // Helper function to convert database track format to our Track type
   const convertDbTrackToTrack = (dbTrack: any): Track => {
     return {
       id: dbTrack.id,
       title: dbTrack.title,
       version: dbTrack.version,
       isrc: dbTrack.isrc,
-      autoAssignIsrc: true, // Default since it might not be in DB
+      autoAssignIsrc: true,
       lyricsLanguage: dbTrack.lyrics_language || releaseData.metadata_language || "en",
       explicitContent: dbTrack.explicit_content as "None" | "Explicit" | "Clean" || "None",
       lyrics: dbTrack.lyrics,
@@ -187,7 +180,6 @@ export default function ReleaseBuilder() {
     };
   };
 
-  // Fetch release data if editing
   const { isLoading, error } = useQuery({
     queryKey: ['release', id],
     queryFn: async () => {
@@ -224,7 +216,6 @@ export default function ReleaseBuilder() {
     enabled: !!id,
   });
 
-  // Also fetch tracks for this release
   useQuery({
     queryKey: ['release-tracks', id],
     queryFn: async () => {
@@ -241,7 +232,6 @@ export default function ReleaseBuilder() {
       }
 
       if (data && data.length > 0) {
-        // Convert database tracks to our Track type
         const convertedTracks = data.map(convertDbTrackToTrack);
         setReleaseData(prev => ({ ...prev, tracks: convertedTracks }));
       }
@@ -250,8 +240,7 @@ export default function ReleaseBuilder() {
     },
     enabled: !!id,
   });
-  
-  // Scroll to section
+
   const scrollToSection = (sectionId: string) => {
     const element = sectionRefs.current[sectionId];
     if (element) {
@@ -259,7 +248,6 @@ export default function ReleaseBuilder() {
     }
   };
 
-  // Form change handlers
   const updateReleaseData = (data: Partial<ReleaseData>) => {
     setReleaseData(prev => ({ ...prev, ...data }));
   };
@@ -319,7 +307,6 @@ export default function ReleaseBuilder() {
       tracks: [...(releaseData.tracks || []), newTrack]
     });
     
-    // Auto-expand the new track
     setExpandedTracks(prev => ({
       ...prev,
       [newTrack.id]: true
@@ -339,13 +326,11 @@ export default function ReleaseBuilder() {
       tracks: releaseData.tracks?.filter(track => track.id !== trackId)
     });
   };
-  
-  // Save release
+
   const saveRelease = async () => {
     try {
       setIsSubmitting(true);
       
-      // Validate required fields
       if (!releaseData.release_name) {
         toast({
           title: "Missing information",
@@ -379,11 +364,9 @@ export default function ReleaseBuilder() {
         return;
       }
 
-      // Create or update release in database
       let releaseId = id;
       
       if (!releaseId) {
-        // Create new release
         const { data, error } = await supabase
           .from('releases')
           .insert(releaseData)
@@ -393,7 +376,6 @@ export default function ReleaseBuilder() {
         if (error) throw error;
         releaseId = data.id;
       } else {
-        // Update existing release
         const { error } = await supabase
           .from('releases')
           .update(releaseData)
@@ -402,13 +384,10 @@ export default function ReleaseBuilder() {
         if (error) throw error;
       }
       
-      // Handle tracks
       if (releaseData.tracks?.length) {
-        // Process each track
         for (const track of releaseData.tracks) {
           const isNewTrack = track.id.startsWith('temp-');
           
-          // Convert Track to database format
           const dbTrack = {
             title: track.title,
             version: track.version,
@@ -429,12 +408,10 @@ export default function ReleaseBuilder() {
           };
           
           if (isNewTrack) {
-            // Create new track
             await supabase
               .from('tracks')
               .insert(dbTrack);
           } else {
-            // Update existing track
             await supabase
               .from('tracks')
               .update(dbTrack)
@@ -448,7 +425,6 @@ export default function ReleaseBuilder() {
         description: "Release saved successfully",
       });
       
-      // Redirect to the releases page
       navigate('/workstation');
     } catch (error) {
       console.error("Error saving release:", error);
@@ -491,7 +467,6 @@ export default function ReleaseBuilder() {
   return (
     <div className="flex min-h-screen bg-[#1A1F2C] text-white">
       <div className="container mx-auto flex relative">
-        {/* Sidebar - Sticky position, follows scroll */}
         <div className="w-64 sticky top-0 h-screen overflow-auto bg-[#121620] border-r border-[#333] flex flex-col">
           <div className="p-6 border-b border-[#333]">
             <h1 className="text-xl font-semibold">{releaseData.release_name || "New Release"}</h1>
@@ -530,10 +505,8 @@ export default function ReleaseBuilder() {
           </div>
         </div>
 
-        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-3xl mx-auto p-8 space-y-16 pb-20">
-            {/* Basic Info Section */}
             <section 
               id="basic-info" 
               ref={(el) => (sectionRefs.current["basic-info"] = el as HTMLDivElement)}
@@ -541,7 +514,6 @@ export default function ReleaseBuilder() {
             >
               <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Basic Info</h2>
               
-              {/* Release Name */}
               <div>
                 <Label htmlFor="release-name">Release Name</Label>
                 <Input
@@ -554,7 +526,6 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* UPC */}
                 <div>
                   <Label htmlFor="upc">UPC</Label>
                   <Input
@@ -566,7 +537,6 @@ export default function ReleaseBuilder() {
                   />
                 </div>
                 
-                {/* Catalog Number */}
                 <div>
                   <Label htmlFor="catalog-number">Catalog Number</Label>
                   <Input
@@ -580,7 +550,6 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Format */}
                 <div>
                   <Label htmlFor="format">Format</Label>
                   <Select
@@ -600,7 +569,6 @@ export default function ReleaseBuilder() {
                   </Select>
                 </div>
                 
-                {/* Metadata Language */}
                 <div>
                   <Label htmlFor="metadata-language">Metadata Language</Label>
                   <Select
@@ -621,7 +589,6 @@ export default function ReleaseBuilder() {
                 </div>
               </div>
               
-              {/* Primary Artists */}
               <div>
                 <Label htmlFor="primary-artists">Primary Artist(s)</Label>
                 <div className="flex gap-2">
@@ -653,7 +620,6 @@ export default function ReleaseBuilder() {
                 </div>
               </div>
               
-              {/* Featured Artists */}
               <div>
                 <Label htmlFor="featured-artists">Featured Artist(s)</Label>
                 <div className="flex gap-2">
@@ -686,7 +652,6 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Genre */}
                 <div>
                   <Label htmlFor="genre">Genre</Label>
                   <Select
@@ -706,7 +671,6 @@ export default function ReleaseBuilder() {
                   </Select>
                 </div>
                 
-                {/* Subgenre */}
                 <div>
                   <Label htmlFor="subgenre">Subgenre</Label>
                   <Select
@@ -728,7 +692,6 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Label */}
                 <div>
                   <Label htmlFor="label">Label</Label>
                   <Input
@@ -740,7 +703,6 @@ export default function ReleaseBuilder() {
                   />
                 </div>
                 
-                {/* Copyright Line */}
                 <div>
                   <Label htmlFor="copyright">© Line</Label>
                   <Input
@@ -754,7 +716,6 @@ export default function ReleaseBuilder() {
               </div>
             </section>
 
-            {/* Artwork Section */}
             <section 
               id="artwork" 
               ref={(el) => (sectionRefs.current["artwork"] = el as HTMLDivElement)}
@@ -795,7 +756,6 @@ export default function ReleaseBuilder() {
               </div>
             </section>
 
-            {/* Tracks Section */}
             <section 
               id="tracks" 
               ref={(el) => (sectionRefs.current["tracks"] = el as HTMLDivElement)}
@@ -839,7 +799,6 @@ export default function ReleaseBuilder() {
                         {expandedTracks[track.id] && (
                           <div className="border-t border-[#333] p-4">
                             <div className="space-y-4">
-                              {/* Track Title and Version */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <Label htmlFor={`track-title-${track.id}`}>Track Title</Label>
@@ -863,7 +822,6 @@ export default function ReleaseBuilder() {
                                 </div>
                               </div>
                               
-                              {/* ISRC and Auto-assign */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <Label htmlFor={`track-isrc-${track.id}`}>ISRC</Label>
@@ -894,7 +852,6 @@ export default function ReleaseBuilder() {
                               </div>
                               
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Language */}
                                 <div>
                                   <Label htmlFor={`track-language-${track.id}`}>Language</Label>
                                   <Select
@@ -919,7 +876,6 @@ export default function ReleaseBuilder() {
                                   </Select>
                                 </div>
                                 
-                                {/* Explicit Content */}
                                 <div>
                                   <Label htmlFor={`track-explicit-${track.id}`}>Explicit Content</Label>
                                   <RadioGroup
