@@ -490,8 +490,8 @@ export default function ReleaseBuilder() {
 
   return (
     <div className="flex min-h-screen bg-[#1A1F2C] text-white">
-      {/* Persistent Sidebar */}
-      <div className="w-64 sticky top-0 h-screen overflow-auto bg-[#121620] border-l border-[#333] flex flex-col">
+      {/* Sidebar - Fixed position, always visible */}
+      <div className="fixed left-0 top-0 w-64 h-screen overflow-auto bg-[#121620] border-r border-[#333] flex flex-col z-10">
         <div className="p-6 border-b border-[#333]">
           <h1 className="text-xl font-semibold">{releaseData.release_name || "New Release"}</h1>
           <p className="text-sm text-[#8E9196] mt-1">{releaseData.upc || "UPC will be assigned"}</p>
@@ -529,9 +529,9 @@ export default function ReleaseBuilder() {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-3xl mx-auto space-y-16 pb-20">
+      {/* Main Content Area - Padded from the left to make room for the fixed sidebar */}
+      <main className="flex-1 pl-64 overflow-y-auto">
+        <div className="max-w-3xl mx-auto p-8 space-y-16 pb-20">
           {/* Basic Info Section */}
           <section 
             id="basic-info" 
