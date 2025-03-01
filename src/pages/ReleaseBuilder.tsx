@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, X, Upload, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, X, Upload, Plus, Calendar } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -96,6 +97,13 @@ const services = [
   "Spotify", "Apple Music", "YouTube Music", "Amazon Music", 
   "Deezer", "Tidal", "Pandora", "SoundCloud", "TikTok", 
   "Instagram/Facebook", "Beatport", "Bandcamp"
+];
+
+const publishingTypes = [
+  "Self-Published", 
+  "Published", 
+  "Public Domain/Traditional",
+  "Unknown"
 ];
 
 export default function ReleaseBuilder() {
@@ -327,6 +335,40 @@ export default function ReleaseBuilder() {
     });
   };
 
+  const toggleTerritory = (territory: string) => {
+    const currentTerritories = releaseData.selected_territories || [];
+    
+    if (territory === "Worldwide") {
+      // If worldwide is being selected, clear all other territories
+      updateReleaseData({ selected_territories: ["Worldwide"] });
+    } else {
+      // If a specific territory is selected, remove Worldwide
+      let newTerritories = currentTerritories.includes(territory)
+        ? currentTerritories.filter(t => t !== territory)
+        : [...currentTerritories.filter(t => t !== "Worldwide"), territory];
+        
+      if (newTerritories.length === 0) {
+        newTerritories = ["Worldwide"];
+      }
+      
+      updateReleaseData({ selected_territories: newTerritories });
+    }
+  };
+
+  const toggleService = (service: string) => {
+    const currentServices = releaseData.selected_services || [];
+    
+    if (currentServices.includes(service)) {
+      updateReleaseData({
+        selected_services: currentServices.filter(s => s !== service)
+      });
+    } else {
+      updateReleaseData({
+        selected_services: [...currentServices, service]
+      });
+    }
+  };
+
   const saveRelease = async () => {
     try {
       setIsSubmitting(true);
@@ -466,8 +508,9 @@ export default function ReleaseBuilder() {
 
   return (
     <div className="flex min-h-screen bg-[#1A1F2C] text-white">
-      <div className="container mx-auto flex relative">
-        <div className="w-64 sticky top-0 h-screen overflow-auto bg-[#121620] border-r border-[#333] flex flex-col">
+      <div className="container mx-auto flex">
+        {/* Sidebar - Fixed, stays in place */}
+        <div className="w-64 fixed top-0 left-0 h-screen overflow-auto bg-[#121620] border-r border-[#333] flex flex-col z-10">
           <div className="p-6 border-b border-[#333]">
             <h1 className="text-xl font-semibold">{releaseData.release_name || "New Release"}</h1>
             <p className="text-sm text-[#8E9196] mt-1">{releaseData.upc || "UPC will be assigned"}</p>
@@ -505,8 +548,10 @@ export default function ReleaseBuilder() {
           </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto">
+        {/* Main Content Area - With left margin to account for fixed sidebar */}
+        <main className="flex-1 ml-64 overflow-y-auto">
           <div className="max-w-3xl mx-auto p-8 space-y-16 pb-20">
+            {/* Basic Info Section */}
             <section 
               id="basic-info" 
               ref={(el) => (sectionRefs.current["basic-info"] = el as HTMLDivElement)}
@@ -514,6 +559,7 @@ export default function ReleaseBuilder() {
             >
               <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Basic Info</h2>
               
+              {/* Release Name */}
               <div>
                 <Label htmlFor="release-name">Release Name</Label>
                 <Input
@@ -526,6 +572,7 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* UPC */}
                 <div>
                   <Label htmlFor="upc">UPC</Label>
                   <Input
@@ -537,6 +584,7 @@ export default function ReleaseBuilder() {
                   />
                 </div>
                 
+                {/* Catalog Number */}
                 <div>
                   <Label htmlFor="catalog-number">Catalog Number</Label>
                   <Input
@@ -550,6 +598,7 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Format */}
                 <div>
                   <Label htmlFor="format">Format</Label>
                   <Select
@@ -569,6 +618,7 @@ export default function ReleaseBuilder() {
                   </Select>
                 </div>
                 
+                {/* Metadata Language */}
                 <div>
                   <Label htmlFor="metadata-language">Metadata Language</Label>
                   <Select
@@ -589,6 +639,7 @@ export default function ReleaseBuilder() {
                 </div>
               </div>
               
+              {/* Primary Artists */}
               <div>
                 <Label htmlFor="primary-artists">Primary Artist(s)</Label>
                 <div className="flex gap-2">
@@ -620,6 +671,7 @@ export default function ReleaseBuilder() {
                 </div>
               </div>
               
+              {/* Featured Artists */}
               <div>
                 <Label htmlFor="featured-artists">Featured Artist(s)</Label>
                 <div className="flex gap-2">
@@ -652,6 +704,7 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Genre */}
                 <div>
                   <Label htmlFor="genre">Genre</Label>
                   <Select
@@ -671,6 +724,7 @@ export default function ReleaseBuilder() {
                   </Select>
                 </div>
                 
+                {/* Subgenre */}
                 <div>
                   <Label htmlFor="subgenre">Subgenre</Label>
                   <Select
@@ -692,6 +746,7 @@ export default function ReleaseBuilder() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Label */}
                 <div>
                   <Label htmlFor="label">Label</Label>
                   <Input
@@ -703,6 +758,7 @@ export default function ReleaseBuilder() {
                   />
                 </div>
                 
+                {/* Copyright Line */}
                 <div>
                   <Label htmlFor="copyright">© Line</Label>
                   <Input
@@ -716,6 +772,7 @@ export default function ReleaseBuilder() {
               </div>
             </section>
 
+            {/* Artwork Section */}
             <section 
               id="artwork" 
               ref={(el) => (sectionRefs.current["artwork"] = el as HTMLDivElement)}
@@ -756,6 +813,7 @@ export default function ReleaseBuilder() {
               </div>
             </section>
 
+            {/* Tracks Section */}
             <section 
               id="tracks" 
               ref={(el) => (sectionRefs.current["tracks"] = el as HTMLDivElement)}
@@ -799,6 +857,7 @@ export default function ReleaseBuilder() {
                         {expandedTracks[track.id] && (
                           <div className="border-t border-[#333] p-4">
                             <div className="space-y-4">
+                              {/* Track Title and Version */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <Label htmlFor={`track-title-${track.id}`}>Track Title</Label>
@@ -822,6 +881,7 @@ export default function ReleaseBuilder() {
                                 </div>
                               </div>
                               
+                              {/* ISRC and Auto-assign */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <Label htmlFor={`track-isrc-${track.id}`}>ISRC</Label>
@@ -852,6 +912,7 @@ export default function ReleaseBuilder() {
                               </div>
                               
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Language */}
                                 <div>
                                   <Label htmlFor={`track-language-${track.id}`}>Language</Label>
                                   <Select
@@ -876,6 +937,7 @@ export default function ReleaseBuilder() {
                                   </Select>
                                 </div>
                                 
+                                {/* Explicit Content */}
                                 <div>
                                   <Label htmlFor={`track-explicit-${track.id}`}>Explicit Content</Label>
                                   <RadioGroup
@@ -936,7 +998,212 @@ export default function ReleaseBuilder() {
               </div>
             </section>
 
-            {/* Add more sections as needed: scheduling, territories, publishing */}
+            {/* Scheduling Section */}
+            <section 
+              id="scheduling" 
+              ref={(el) => (sectionRefs.current["scheduling"] = el as HTMLDivElement)}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Scheduling</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="release-date">Release Date</Label>
+                    <div className="flex">
+                      <Input
+                        id="release-date"
+                        type="date"
+                        value={releaseData.release_date || ""}
+                        onChange={(e) => updateReleaseData({ release_date: e.target.value })}
+                        className="bg-[#222] border-[#333]"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="sales-start-date">Sales Start Date</Label>
+                    <div className="flex">
+                      <Input
+                        id="sales-start-date"
+                        type="date"
+                        value={releaseData.sales_start_date || ""}
+                        onChange={(e) => updateReleaseData({ sales_start_date: e.target.value })}
+                        className="bg-[#222] border-[#333]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label>Pre-save Option</Label>
+                    <RadioGroup
+                      value={releaseData.presave_option || "none"}
+                      onValueChange={(value) => updateReleaseData({ presave_option: value })}
+                      className="space-y-2 mt-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="none" id="presave-none" />
+                        <Label htmlFor="presave-none">No pre-save</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="standard" id="presave-standard" />
+                        <Label htmlFor="presave-standard">Standard pre-save</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="premium" id="presave-premium" />
+                        <Label htmlFor="presave-premium">Premium pre-save</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
+                  {releaseData.presave_option && releaseData.presave_option !== "none" && (
+                    <div>
+                      <Label htmlFor="presave-date">Pre-save Start Date</Label>
+                      <div className="flex">
+                        <Input
+                          id="presave-date"
+                          type="date"
+                          value={releaseData.presave_date || ""}
+                          onChange={(e) => updateReleaseData({ presave_date: e.target.value })}
+                          className="bg-[#222] border-[#333]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="pricing">Pricing</Label>
+                <Select
+                  value={releaseData.pricing || ""}
+                  onValueChange={(value) => updateReleaseData({ pricing: value })}
+                >
+                  <SelectTrigger className="bg-[#222] border-[#333]">
+                    <SelectValue placeholder="Select pricing strategy" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#222] border-[#333]">
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                    <SelectItem value="budget">Budget</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </section>
+
+            {/* Territories & Services Section */}
+            <section 
+              id="territories" 
+              ref={(el) => (sectionRefs.current["territories"] = el as HTMLDivElement)}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Territories & Services</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <Label className="text-lg mb-4 block">Select Territories</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {territories.map(territory => (
+                      <div key={territory} className="flex items-center space-x-2">
+                        <Switch
+                          id={`territory-${territory}`}
+                          checked={(releaseData.selected_territories || []).includes(territory)}
+                          onCheckedChange={() => toggleTerritory(territory)}
+                          disabled={
+                            territory !== "Worldwide" && 
+                            (releaseData.selected_territories || []).includes("Worldwide")
+                          }
+                        />
+                        <Label 
+                          htmlFor={`territory-${territory}`}
+                          className={territory === "Worldwide" ? "font-bold" : ""}
+                        >
+                          {territory}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-lg mb-4 block">Select Services</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {services.map(service => (
+                      <div key={service} className="flex items-center space-x-2">
+                        <Switch
+                          id={`service-${service}`}
+                          checked={(releaseData.selected_services || []).includes(service)}
+                          onCheckedChange={() => toggleService(service)}
+                        />
+                        <Label htmlFor={`service-${service}`}>
+                          {service}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Publishing Section */}
+            <section 
+              id="publishing" 
+              ref={(el) => (sectionRefs.current["publishing"] = el as HTMLDivElement)}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold border-b border-[#333] pb-2">Publishing</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="publishing-type">Publishing Type</Label>
+                  <RadioGroup
+                    value={releaseData.publishing_type || "self-published"}
+                    onValueChange={(value) => updateReleaseData({ publishing_type: value })}
+                    className="space-y-3 mt-3"
+                  >
+                    {publishingTypes.map(type => (
+                      <div key={type} className="flex items-center space-x-2">
+                        <RadioGroupItem 
+                          value={type.toLowerCase().replace(/\s+/g, '-')} 
+                          id={`publishing-${type.toLowerCase().replace(/\s+/g, '-')}`} 
+                        />
+                        <Label htmlFor={`publishing-${type.toLowerCase().replace(/\s+/g, '-')}`}>
+                          {type}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+                
+                {releaseData.publishing_type === "published" && (
+                  <div>
+                    <Label htmlFor="publisher-name">Publisher Name</Label>
+                    <Input
+                      id="publisher-name"
+                      value={releaseData.publisher_name || ""}
+                      onChange={(e) => updateReleaseData({ publisher_name: e.target.value })}
+                      placeholder="Enter publisher name"
+                      className="bg-[#222] border-[#333]"
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <div className="bg-[#222] border border-[#333] rounded-lg p-6">
+                    <h3 className="text-lg font-medium mb-4">Publishing Notes</h3>
+                    <p className="text-[#8E9196] mb-4">
+                      Publishing information is used to ensure proper royalty attribution. Make sure to provide accurate details, especially if the release contains covers or samples.
+                    </p>
+                    <p className="text-[#8E9196]">
+                      For releases with multiple tracks, you can set publishing information for each track individually in the tracks section.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </main>
       </div>
