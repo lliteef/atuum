@@ -124,6 +124,32 @@ export default function ReleaseBuilder() {
   const [expandedTracks, setExpandedTracks] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Helper function to convert database track format to our Track type
+  const convertDbTrackToTrack = (dbTrack: any): Track => {
+    return {
+      id: dbTrack.id,
+      title: dbTrack.title,
+      version: dbTrack.version,
+      isrc: dbTrack.isrc,
+      autoAssignIsrc: true, // Default since it might not be in DB
+      lyricsLanguage: dbTrack.lyrics_language || releaseData.metadata_language || "en",
+      explicitContent: dbTrack.explicit_content as "None" | "Explicit" | "Clean" || "None",
+      lyrics: dbTrack.lyrics,
+      primaryArtists: dbTrack.primary_artists || [],
+      featuredArtists: dbTrack.featured_artists || [],
+      remixers: dbTrack.remixers || [],
+      songwriters: dbTrack.songwriters || [],
+      producers: dbTrack.producers || [],
+      additionalContributors: dbTrack.additional_contributors || [],
+      pLine: dbTrack.p_line || "",
+      audioUrl: dbTrack.audio_url,
+      audioFilename: dbTrack.audio_filename,
+      created_at: dbTrack.created_at,
+      created_by: dbTrack.created_by,
+      release_id: dbTrack.release_id
+    };
+  };
+
   // Fetch release data if editing
   const { isLoading, error } = useQuery({
     queryKey: ['release', id],
@@ -178,7 +204,9 @@ export default function ReleaseBuilder() {
       }
 
       if (data && data.length > 0) {
-        setReleaseData(prev => ({ ...prev, tracks: data }));
+        // Convert database tracks to our Track type
+        const convertedTracks = data.map(convertDbTrackToTrack);
+        setReleaseData(prev => ({ ...prev, tracks: convertedTracks }));
       }
       
       return data;
@@ -344,20 +372,36 @@ export default function ReleaseBuilder() {
         for (const track of releaseData.tracks) {
           const isNewTrack = track.id.startsWith('temp-');
           
+          // Convert Track to database format
+          const dbTrack = {
+            title: track.title,
+            version: track.version,
+            isrc: track.isrc,
+            lyrics: track.lyrics,
+            lyrics_language: track.lyricsLanguage,
+            explicit_content: track.explicitContent,
+            primary_artists: track.primaryArtists,
+            featured_artists: track.featuredArtists,
+            remixers: track.remixers,
+            songwriters: track.songwriters,
+            producers: track.producers,
+            additional_contributors: track.additionalContributors,
+            p_line: track.pLine,
+            audio_url: track.audioUrl,
+            audio_filename: track.audioFilename,
+            release_id: releaseId
+          };
+          
           if (isNewTrack) {
             // Create new track
-            const { id, ...trackData } = track;
             await supabase
               .from('tracks')
-              .insert({
-                ...trackData,
-                release_id: releaseId
-              });
+              .insert(dbTrack);
           } else {
             // Update existing track
             await supabase
               .from('tracks')
-              .update(track)
+              .update(dbTrack)
               .eq('id', track.id);
           }
         }
@@ -1184,3 +1228,4 @@ export default function ReleaseBuilder() {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+
 export interface Track {
   id: string;
   title: string;
@@ -26,4 +27,9 @@ export interface Track {
   currentRemixer?: string;
   currentSongwriter?: string;
   currentProducer?: string;
+  
+  // Add these fields to match database schema
+  created_at?: string;
+  created_by?: string;
+  release_id?: string;
 }
